@@ -220,6 +220,12 @@ UICollectionViewDelegate, UICollectionViewDataSource, DayViewCellDelegate, Frame
             }
         }
     }
+    
+    func dayViewCellWasTapped(_ dayViewCell: DayViewCell, hours: Int, minutes: Int) {
+        if let weekView = self.superview?.superview as? WeekView {
+            weekView.dayViewCellWasTapped(dayViewCell, at: hours, and: minutes)
+        }
+    }
 
     // solution == nil => do not render events. solution.isEmpty => render empty
     func passSolution(fromCalculator calculator: FrameCalculator, solution: [String : CGRect]?) {

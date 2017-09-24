@@ -191,6 +191,11 @@ open class WeekView: UIView {
         let date = dayViewCell.date.getDateWithTime(hours: hours, minutes: minutes, seconds: 0)
         self.delegate?.didLongPressDayView(in: self, atDate: date)
     }
+    
+    func dayViewCellWasTapped(_ dayViewCell: DayViewCell, at hours: Int, and minutes: Int) {
+        let date = dayViewCell.date.getDateWithTime(hours: hours, minutes: minutes, seconds: 0)
+        self.delegate?.didTapDayView(in: self, atDate: date)
+    }
 
     /**
      Method delegates active day change and sends a callback with the new day up to the WeekViewDelegate.
@@ -468,6 +473,8 @@ extension WeekView {
  */
 @objc public protocol WeekViewDelegate: class {
     func didLongPressDayView(in weekView: WeekView, atDate date: Date)
+    
+    func didTapDayView(in weekView: WeekView, atDate date: Date)
 
     func didTapEvent(in weekView: WeekView, withId eventId: String)
 

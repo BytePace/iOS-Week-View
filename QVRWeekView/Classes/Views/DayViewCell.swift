@@ -140,6 +140,25 @@ class DayViewCell: UICollectionViewCell, CAAnimationDelegate {
                 return
             }
         }
+        
+        guard !self.addingEvent else {
+            return
+        }
+        
+        let yTouch = sender.location(ofTouch: 0, in: self).y
+        let previewPos = self.previewPosition(forYCoordinate: yTouch)
+        
+        print("state \(sender.state.rawValue)")
+        if sender.state == .ended {
+            self.makePreviewLayer(at: previewPos)
+            if let prevLayer = self.previewLayer {
+                let time = Double( ((prevLayer.position.y-(hourHeight*CGFloat(LayoutVariables.previewEventHeightInHours/2)))/self.frame.height)*24 )
+                let hours = Int(time)
+                let minutes = Int((time-Double(hours))*60)
+                self.delegate?.dayViewCellWasTapped(self, hours: hours, minutes: minutes)
+            }
+            self.releasePreviewLayer(at: previewPos)
+        }
     }
 
     func updateEventTextFontSize() {
@@ -336,6 +355,8 @@ class DayViewCell: UICollectionViewCell, CAAnimationDelegate {
 
             self.previewVisible = false
             self.delegate?.dayViewCellWasLongPressed(self, hours: hours, minutes: minutes)
+        } else if let prevLayer = self.previewLayer {
+            print("")
         }
 
     }
@@ -368,5 +389,6 @@ protocol DayViewCellDelegate: class {
     func dayViewCellWasLongPressed(_ dayViewCell: DayViewCell, hours: Int, minutes: Int)
 
     func eventViewWasTappedIn(_ dayViewCell: DayViewCell, withEventData eventData: EventData)
-
+    
+    func dayViewCellWasTapped(_ dayViewCell: DayViewCell, hours: Int, minutes: Int)
 }
