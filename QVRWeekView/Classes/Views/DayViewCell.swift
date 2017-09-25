@@ -146,18 +146,12 @@ class DayViewCell: UICollectionViewCell, CAAnimationDelegate {
         }
         
         let yTouch = sender.location(ofTouch: 0, in: self).y
-        let previewPos = self.previewPosition(forYCoordinate: yTouch)
-        
-        print("state \(sender.state.rawValue)")
+    
         if sender.state == .ended {
-            self.makePreviewLayer(at: previewPos)
-            if let prevLayer = self.previewLayer {
-                let time = Double( ((prevLayer.position.y-(hourHeight*CGFloat(LayoutVariables.previewEventHeightInHours/2)))/self.frame.height)*24 )
-                let hours = Int(time)
-                let minutes = Int((time-Double(hours))*60)
-                self.delegate?.dayViewCellWasTapped(self, hours: hours, minutes: minutes)
-            }
-            self.releasePreviewLayer(at: previewPos)
+            let time = Double( ((yTouch-(hourHeight*CGFloat(LayoutVariables.previewEventHeightInHours/2)))/self.frame.height)*24 )
+            let hours = Int(time)
+            let minutes = Int((time-Double(hours))*60)
+            self.delegate?.dayViewCellWasTapped(self, hours: hours, minutes: minutes)
         }
     }
 
