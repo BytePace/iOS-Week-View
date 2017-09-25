@@ -69,6 +69,10 @@ class DayViewCell: UICollectionViewCell, CAAnimationDelegate {
         self.addSubview(overlayView)
     }
 
+    override func prepareForReuse() {
+        addingEvent = false
+    }
+    
     override func layoutSubviews() {
         updateOverlay()
         generateSeparatorLayers()
