@@ -467,6 +467,12 @@ UICollectionViewDelegate, UICollectionViewDataSource, DayViewCellDelegate, Frame
             weekView.requestEvents(between: startDate, and: endDate)
         }
     }
+    
+    func removeAllPreviews() {
+        for cell in dayViewCells.values {
+            cell.removePreviewLayer()
+        }
+    }
 
     // MARK: - HELPER/PRIVATE FUNCTIONS -
 

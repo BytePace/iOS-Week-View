@@ -175,6 +175,13 @@ open class WeekView: UIView {
         dayScrollView.overwriteAllEvents(withData: eventsData)
     }
 
+    /**
+     Remove all event previes.
+     */
+    open func removeAllPreviews() {
+        dayScrollView.removeAllPreviews()
+    }
+    
     // MARK: - DELEGATE FUNCTIONS -
 
     /**
