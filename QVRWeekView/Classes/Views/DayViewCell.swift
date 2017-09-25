@@ -147,12 +147,27 @@ class DayViewCell: UICollectionViewCell, CAAnimationDelegate {
         
         let yTouch = sender.location(ofTouch: 0, in: self).y
     
+        let time = getTime(from : yTouch)
+        
         if sender.state == .ended {
-            let time = Double( ((yTouch-(hourHeight*CGFloat(LayoutVariables.previewEventHeightInHours/2)))/self.frame.height)*24 )
-            let hours = Int(time)
-            let minutes = Int((time-Double(hours))*60)
-            self.delegate?.dayViewCellWasTapped(self, hours: hours, minutes: minutes)
+            self.delegate?.dayViewCellWasTapped(self, hours: time.0, minutes: time.1)
         }
+        
+        if let _delegate = self.delegate, _delegate.dayViewCellShouldCreatePreviewOnTap(self, hours: time.0, minutes: time.1) {
+            let previewPos = self.previewPosition(forYCoordinate: yTouch)
+            if sender.state == .ended {
+                self.makePreviewLayer(at: previewPos)
+            } else if sender.state == .cancelled || sender.state == .failed {
+                self.previewVisible = false
+            }
+        }
+    }
+    
+    private func getTime(from yPosition : CGFloat) -> (Int, Int) {
+        let time = Double( ((yPosition-(hourHeight*CGFloat(LayoutVariables.previewEventHeightInHours/2)))/self.frame.height)*24 )
+        let hours = Int(time)
+        let minutes = Int((time-Double(hours))*60)
+        return (hours, minutes)
     }
 
     func updateEventTextFontSize() {
@@ -269,18 +284,25 @@ class DayViewCell: UICollectionViewCell, CAAnimationDelegate {
         }
 
         let yTouch = sender.location(ofTouch: 0, in: self).y
-        let previewPos = self.previewPosition(forYCoordinate: yTouch)
-
-        if sender.state == .began {
-            self.makePreviewLayer(at: previewPos)
+        let time = getTime(from: yTouch)
+        
+        if sender.state == .ended {
+            self.delegate?.dayViewCellWasLongPressed(self, hours: time.0, minutes: time.1)
         }
-        else if sender.state == .ended {
-            self.releasePreviewLayer(at: previewPos)
-        }
-        else if sender.state == .changed {
-            movePreviewLayer(to: previewPos)
-        } else if sender.state == .cancelled || sender.state == .failed {
-            self.previewVisible = false
+        
+        if let _delegate = self.delegate, _delegate.dayViewCellShouldCreatePreviewOnLongPress(self, hours: time.0, minutes: time.1) {
+            let previewPos = self.previewPosition(forYCoordinate: yTouch)
+            if sender.state == .began {
+                self.makePreviewLayer(at: previewPos)
+            }
+            else if sender.state == .ended {
+                self.releasePreviewLayer(at: previewPos)
+            }
+            else if sender.state == .changed {
+                movePreviewLayer(to: previewPos)
+            } else if sender.state == .cancelled || sender.state == .failed {
+                self.previewVisible = false
+            }
         }
     }
 
@@ -349,10 +371,7 @@ class DayViewCell: UICollectionViewCell, CAAnimationDelegate {
 
             self.previewVisible = false
             self.delegate?.dayViewCellWasLongPressed(self, hours: hours, minutes: minutes)
-        } else if let prevLayer = self.previewLayer {
-            print("")
         }
-
     }
 
     func removePreviewLayer() {
@@ -385,4 +404,8 @@ protocol DayViewCellDelegate: class {
     func eventViewWasTappedIn(_ dayViewCell: DayViewCell, withEventData eventData: EventData)
     
     func dayViewCellWasTapped(_ dayViewCell: DayViewCell, hours: Int, minutes: Int)
+    
+    func dayViewCellShouldCreatePreviewOnLongPress(_ dayViewCell : DayViewCell, hours: Int, minutes: Int) -> Bool
+    func dayViewCellShouldCreatePreviewOnTap(_ dayViewCell : DayViewCell, hours: Int, minutes: Int) -> Bool
+
 }

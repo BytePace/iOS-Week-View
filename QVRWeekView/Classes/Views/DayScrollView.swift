@@ -226,6 +226,20 @@ UICollectionViewDelegate, UICollectionViewDataSource, DayViewCellDelegate, Frame
             weekView.dayViewCellWasTapped(dayViewCell, at: hours, and: minutes)
         }
     }
+    
+    func dayViewCellShouldCreatePreviewOnTap(_ dayViewCell: DayViewCell, hours: Int, minutes: Int) -> Bool {
+        if let weekView = self.superview?.superview as? WeekView {
+            return weekView.dayViewCellShouldCreatePreviewOnTap(dayViewCell, hours: hours, minutes: minutes)
+        }
+        return false
+    }
+    
+    func dayViewCellShouldCreatePreviewOnLongPress(_ dayViewCell: DayViewCell, hours: Int, minutes: Int) -> Bool {
+        if let weekView = self.superview?.superview as? WeekView {
+            return weekView.dayViewCellShouldCreatePreviewOnLongPress(dayViewCell, hours: hours, minutes: minutes)
+        }
+        return false
+    }
 
     // solution == nil => do not render events. solution.isEmpty => render empty
     func passSolution(fromCalculator calculator: FrameCalculator, solution: [String : CGRect]?) {
