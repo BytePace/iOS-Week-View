@@ -48,7 +48,7 @@ open class WeekView: UIView {
     // Left side buffer for top bar
     private var topBarLeftBuffer: CGFloat = 0
     // Top side buffer for side bar
-    private var sideBarTopBuffer: CGFloat = 0
+    private var sideBarTopBuffer: CGFloat = 40
     // The scale of the latest pinch event
     private var lastTouchScale = CGFloat(0)
 
@@ -369,7 +369,8 @@ open class WeekView: UIView {
      Method will update top and side bar positions, so that they scroll along with the current dayScrollView.
      */
     func updateTopAndSideBarPositions() {
-        sideBarYPositionConstraint.constant = -dayScrollView.contentOffset.y + sideBarTopBuffer
+        let dayViewCellHourHeight = dayViewCellHeight/DateSupport.hoursInDay
+        sideBarYPositionConstraint.constant = -dayScrollView.contentOffset.y - dayViewCellHourHeight/2
         topBarXPositionConstraint.constant = -dayScrollView.dayCollectionView.contentOffset.x + topBarLeftBuffer
     }
 
