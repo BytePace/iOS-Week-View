@@ -65,12 +65,28 @@ public extension WeekView {
         }
     }
     
+    /**
+     Background color of sideBar.
+     */
     public var sideBarBackgroundColor: UIColor {
         get {
             return self.sideBarView.backgroundColor!
         }
         set(color) {
-                self.sideBarView.backgroundColor = color
+            self.sideBarView.backgroundColor = color
+        }
+    }
+    
+    
+    /**
+     Background color of dayCollectionView
+    */
+    public var dayCollectionViewBackgroundColor : UIColor {
+        get {
+            return dayScrollView.dayCollectionView.backgroundColor!
+        }
+        set(color) {
+            dayScrollView.dayCollectionView.backgroundColor = color
         }
     }
 
