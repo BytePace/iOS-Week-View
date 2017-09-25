@@ -984,7 +984,7 @@ struct LayoutVariables {
     }
 
     // Height of all scrollable content
-    private(set) static var totalContentHeight = dayViewVerticalSpacing*2 + dayViewCellHeight {
+    private(set) static var totalContentHeight = dayViewCellHeight {
         didSet {
             updateMaxOffsetY()
         }
@@ -1079,7 +1079,7 @@ struct LayoutVariables {
     }
 
     private static func updateTotalContentHeight() {
-        totalContentHeight = dayViewVerticalSpacing*2 + dayViewCellHeight
+        totalContentHeight = dayViewCellHeight
     }
 
     private static func updateTotalContentWidth() {
