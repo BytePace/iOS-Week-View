@@ -23,7 +23,6 @@ public extension WeekView {
         }
         set(color) {
             self.mainView.backgroundColor = color
-            self.sideBarView.backgroundColor = color
         }
     }
 
@@ -63,6 +62,15 @@ public extension WeekView {
         set(width) {
             self.sideBarWidthConstraint.constant = width
             self.topLeftBufferWidthConstraint.constant = width
+        }
+    }
+    
+    public var sideBarBackgroundColor: UIColor {
+        get {
+            return self.sideBarView.backgroundColor!
+        }
+        set(color) {
+                self.sideBarView.backgroundColor = color
         }
     }
 
