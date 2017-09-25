@@ -89,6 +89,34 @@ public extension WeekView {
             dayScrollView.dayCollectionView.backgroundColor = color
         }
     }
+    
+    
+    /**
+     Border width of the dayCollectionView.
+     */
+    public var dayCollectionViewBorderWidth: CGFloat {
+        get {
+            return self.dayScrollView.dayCollectionView.layer.borderWidth
+        }
+        set(borderWidth) {
+            self.dayScrollView.dayCollectionView.layer.borderWidth = borderWidth
+        }
+    }
+    
+    /**
+     Border color of the dayCollectionView
+     */
+    public var dayCollectionViewBorderColor: UIColor {
+        get {
+            if let borderColor = self.dayScrollView.dayCollectionView.layer.borderColor {
+                return UIColor(cgColor: borderColor)
+            }
+            return UIColor.black
+        }
+        set(borderColor) {
+            self.dayScrollView.dayCollectionView.layer.borderColor = borderColor.cgColor
+        }
+    }
 
     /**
      Font for all day labels contained in the top bar.
