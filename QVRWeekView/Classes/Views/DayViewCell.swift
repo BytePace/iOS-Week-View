@@ -71,6 +71,7 @@ class DayViewCell: UICollectionViewCell, CAAnimationDelegate {
 
     override func prepareForReuse() {
         addingEvent = false
+        removePreviewLayer()
     }
     
     override func layoutSubviews() {
