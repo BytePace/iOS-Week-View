@@ -607,7 +607,7 @@ public extension WeekView {
      */
     public var dayViewCellHeight: CGFloat {
         get {
-            return LayoutVariables.dayViewCellHeight
+            return LayoutDefaults.hourHeight * CGFloat(HourVariables.maxHour - HourVariables.minHour)
         }
         set(height) {
             self.dayScrollView.setInitialVisibleDayViewCellHeight(to: height)

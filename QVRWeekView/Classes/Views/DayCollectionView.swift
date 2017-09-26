@@ -52,6 +52,11 @@ class DayCollectionViewFlowLayout: UICollectionViewFlowLayout {
         self.minimumLineSpacing = LayoutVariables.dayViewHorizontalSpacing
         self.scrollDirection = .horizontal
     }
+    
+    override func invalidateLayout() {
+        self.itemSize = CGSize(width: LayoutVariables.dayViewCellWidth, height: LayoutVariables.dayViewCellHeight)
+        super.invalidateLayout()
+    }
 
     override func targetContentOffset(forProposedContentOffset proposedContentOffset: CGPoint,
                                       withScrollingVelocity velocity: CGPoint) -> CGPoint {

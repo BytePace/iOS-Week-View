@@ -60,7 +60,7 @@ class HourSideBarView: UIView {
                 hoursChanged = true
             }
             
-            guard let stackView = hourLabels.first?.superview as? UIStackView else { return }
+            guard let stackView = subviews.first?.subviews.first as? UIStackView else { return }
 
             if hoursChanged {
                 let diff = maxHour - minHour

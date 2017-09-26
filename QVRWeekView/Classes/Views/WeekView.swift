@@ -78,6 +78,11 @@ open class WeekView: UIView {
         super.init(frame: frame)
         initWeekView()
     }
+    
+    public func reload() {
+        dayScrollView.dayCollectionView.collectionViewLayout.invalidateLayout()
+        dayScrollView.dayCollectionView.reloadData()
+    }
 
     /**
      Updates displayed time and requests event when moving to window.
@@ -369,7 +374,7 @@ open class WeekView: UIView {
      Method will update top and side bar positions, so that they scroll along with the current dayScrollView.
      */
     func updateTopAndSideBarPositions() {
-        let dayViewCellHourHeight = dayViewCellHeight/
+        let dayViewCellHourHeight = dayViewCellHeight/CGFloat(HourVariables.maxHour - HourVariables.minHour)
         sideBarYPositionConstraint.constant = -dayScrollView.contentOffset.y - dayViewCellHourHeight/2
         topBarXPositionConstraint.constant = -dayScrollView.dayCollectionView.contentOffset.x + topBarLeftBuffer
     }

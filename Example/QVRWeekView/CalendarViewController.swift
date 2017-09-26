@@ -37,10 +37,13 @@ class CalendarViewController: UIViewController, WeekViewDelegate {
     }
 
     @IBAction func testButtonPress(_ sender: Any) {
-        let df = DateFormatter()
-        df.dateFormat="yyyy-MM-dd"
-        let date = df.date(from: "2017-12-25")!
-        weekView.showDay(withDate: date)
+//        let df = DateFormatter()
+//        df.dateFormat="yyyy-MM-dd"
+//        let date = df.date(from: "2017-12-25")!
+//        weekView.showDay(withDate: date)
+        weekView.minHour = 9
+        weekView.maxHour = 20
+        weekView.reload()
     }
 
     override func viewDidLoad() {

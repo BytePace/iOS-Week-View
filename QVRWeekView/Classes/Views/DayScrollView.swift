@@ -900,7 +900,7 @@ struct LayoutVariables {
         }
     }
     // Height of the current day columns
-    private(set) static var dayViewCellHeight = LayoutDefaults.dayViewCellHeight {
+    private(set) static var dayViewCellHeight = LayoutDefaults.hourHeight * CGFloat(HourVariables.maxHour - HourVariables.minHour) {
         didSet {
             updateTotalContentHeight()
         }
