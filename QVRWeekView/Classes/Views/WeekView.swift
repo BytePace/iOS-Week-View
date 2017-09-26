@@ -369,7 +369,7 @@ open class WeekView: UIView {
      Method will update top and side bar positions, so that they scroll along with the current dayScrollView.
      */
     func updateTopAndSideBarPositions() {
-        let dayViewCellHourHeight = dayViewCellHeight/DateSupport.hoursInDay
+        let dayViewCellHourHeight = dayViewCellHeight/
         sideBarYPositionConstraint.constant = -dayScrollView.contentOffset.y - dayViewCellHourHeight/2
         topBarXPositionConstraint.constant = -dayScrollView.dayCollectionView.contentOffset.x + topBarLeftBuffer
     }
@@ -382,9 +382,9 @@ open class WeekView: UIView {
     private func updateTopAndSideBarConstraints() {
 
         // Height of total side bar
-        let dayViewCellHeight = LayoutVariables.dayViewCellHeight
-        let dayViewCellHourHeight = dayViewCellHeight/DateSupport.hoursInDay
-        let sideBarHeight = dayViewCellHeight + dayViewCellHourHeight
+        let dayViewCellHeight = LayoutDefaults.hourHeight*CGFloat(HourVariables.maxHour - HourVariables.minHour)
+        let dayViewCellHourHeight = LayoutDefaults.hourHeight
+        let sideBarHeight = LayoutDefaults.hourHeight*CGFloat(HourVariables.maxHour - HourVariables.minHour)
 
         // Set position and size constraints for side bar and hour view
         self.hourSideBarBottomConstraint.constant = dayViewCellHourHeight
@@ -526,5 +526,17 @@ public struct FontVariables {
     static func updateDayLabelCurrentFont () {
         dayLabelCurrentFont = dayLabelDefaultFont.withSize(dayLabelCurrentFontSize)
     }
+
+}
+
+// MARK: - HOURSIDEBARVIEW LAYOUT VARIABLES -
+
+public struct HourVariables {
+    
+    // Minimum hour for HOURSIDEBARVIEW
+    static var minHour = 6
+    
+    // Maximum hour for HOURSIDEBARVIEW
+    static var maxHour = 21
 
 }

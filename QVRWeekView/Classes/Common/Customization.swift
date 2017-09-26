@@ -185,6 +185,32 @@ public extension WeekView {
     }
 
     /**
+     Format of all hour labels.
+     */
+    public var minHour: Int {
+        get {
+            return HourVariables.minHour
+        }
+        set(value) {
+            HourVariables.minHour = value
+            updateHourSideBarView()
+        }
+    }
+    
+    /**
+     Format of all hour labels.
+     */
+    public var maxHour: Int {
+        get {
+            return HourVariables.maxHour
+        }
+        set(value) {
+            HourVariables.maxHour = value
+            updateHourSideBarView()
+        }
+    }
+    
+    /**
      Font for all hour labels contained in the side bar.
      */
     public var hourLabelFont: UIFont {
@@ -274,6 +300,34 @@ public extension WeekView {
 
     // MARK: - DAYSCROLLVIEW CUSTOMIZATION -
 
+    /**
+     Number of visible days when in portait mode.
+     */
+    public var dayStartHour: Int {
+        get {
+            return DayViewCell.startHour
+        }
+        set(days) {
+            DayViewCell.startHour = dayStartHour
+            updateVisibleLabelsAndMainConstraints()
+        }
+    }
+    
+    /**
+     Number of visible days when in portait mode.
+     */
+    public var dayEndHour: Int {
+        get {
+            return DayViewCell.endHour
+        }
+        set(days) {
+            DayViewCell.endHour = dayEndHour
+            updateVisibleLabelsAndMainConstraints()
+        }
+    }
+
+
+    
     /**
      Number of visible days when in portait mode.
      */

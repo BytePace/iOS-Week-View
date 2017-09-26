@@ -6,7 +6,9 @@ import UIKit
  */
 @IBDesignable
 class HourSideBarView: UIView {
-
+    private var minHour = 0
+    private var maxHour = 24
+    
     @IBOutlet var hourLabels: [UILabel]!
     var view: UIView?
 
@@ -47,17 +49,56 @@ class HourSideBarView: UIView {
     }
 
     func updateLabels () {
-        hourLabels.sort { (label1, label2) -> Bool in
-            return label1.text! < label2.text!
-        }
+        if #available(iOS 9.0, *) {
+            var hoursChanged = false
+            if minHour != HourVariables.minHour {
+                minHour = HourVariables.minHour
+                hoursChanged = true
+            }
+            if maxHour != HourVariables.maxHour {
+                maxHour = HourVariables.maxHour
+                hoursChanged = true
+            }
+            
+            guard let stackView = hourLabels.first?.superview as? UIStackView else { return }
 
-        var date = DateSupport.getZeroDate()
-        let df = DateFormatter()
-        df.dateFormat = FontVariables.hourLabelDateFormat
-        for label in hourLabels {
-            label.text = df.string(from: date)
-            date.advanceBy(hours: 1)
+            if hoursChanged {
+                let diff = maxHour - minHour
+                if stackView.arrangedSubviews.count < diff {
+                    stackView.addArrangedSubview(UILabel())
+                } else if stackView.arrangedSubviews.count > diff {
+                    let obsolete = stackView.arrangedSubviews.count - diff
+                    for i in 0...obsolete - 1 {
+                        stackView.arrangedSubviews[i].removeFromSuperview()
+                    }
+                    print("")
+                }
+            }
+            
+            var date = DateSupport.getZeroDate(withHour: minHour)
+            let df = DateFormatter()
+            df.dateFormat = FontVariables.hourLabelDateFormat
+            for label in stackView.arrangedSubviews {
+                guard let label = label as? UILabel else { continue }
+                label.text = df.string(from: date)
+                date.advanceBy(hours: 1)
+            }
+            print("")
+        } else {
+            hourLabels.sort { (label1, label2) -> Bool in
+                return label1.text! < label2.text!
+            }
+            
+            var date = DateSupport.getZeroDate(withHour: minHour)
+            let df = DateFormatter()
+            df.dateFormat = FontVariables.hourLabelDateFormat
+            for label in hourLabels {
+                label.text = df.string(from: date)
+                date.advanceBy(hours: 1)
+            }
+            print("")
         }
+        
     }
 
     private func setView() {

@@ -9,10 +9,23 @@
 import QVRWeekView
 import UIKit
 
-public var autoFillEvents = true
+public var autoFillEvents = false
 
 class CalendarViewController: UIViewController, WeekViewDelegate {
+    
+    func weekViewCellShouldCreatePreviewOnLongPress(date: Date) -> Bool {
+        return false
+    }
 
+    func weekViewCellShouldCreatePreviewOnTap(date: Date) -> Bool {
+        weekView.removeAllPreviews()
+        return true
+    }
+    
+    func didTapDayView(in weekView: WeekView, atDate date: Date) {
+        print(date)
+    }
+    
     var allEvents: [Int: EventData] = [:]
     var eventsSortedByDay: [Date: [EventData]] = [:]
     var id: Int = 0
@@ -33,6 +46,22 @@ class CalendarViewController: UIViewController, WeekViewDelegate {
     override func viewDidLoad() {
         super.viewDidLoad()
         weekView.delegate = self
+        
+        weekView.minHour = 6
+        weekView.maxHour = 21
+        weekView.visibleDaysInPortraitMode = 7
+        weekView.dayViewDashedSeparatorThickness = 0
+        weekView.hourLabelTextColor = UIColor.lightGray
+        weekView.mainBackgroundColor = UIColor.white
+        weekView.defaultDayViewColor = UIColor.white
+        weekView.weekendDayViewColor = UIColor.white
+        weekView.topBarColor = UIColor.clear
+        weekView.sideBarBackgroundColor = UIColor.clear
+        weekView.dayCollectionViewBackgroundColor = UIColor.lightGray
+        weekView.dayCollectionViewBorderColor = UIColor.lightGray
+        weekView.dayCollectionViewBorderWidth = 1
+        weekView.dayViewHourIndicatorThickness = 1
+        weekView.dayLabelDateFormats = [TextMode.small : "EEEEE d", TextMode.normal : "EEE d", TextMode.large : "EEE d"]
     }
 
     override func didReceiveMemoryWarning() {
@@ -141,7 +170,7 @@ class CalendarViewController: UIViewController, WeekViewDelegate {
             weekView.redrawEvents()
         }))
 
-        self.present(alert, animated: true, completion: nil)
+//        self.present(alert, animated: true, completion: nil)
 
     }
 

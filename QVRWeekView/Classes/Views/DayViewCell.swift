@@ -5,7 +5,9 @@ import UIKit
  Class of the day view columns generated and displayed within DayScrollView
  */
 class DayViewCell: UICollectionViewCell, CAAnimationDelegate {
-
+    static var startHour = 7
+    static var endHour = 21
+    
     // Static variable stores all ids of dayviewcells
     private static var uniqueIds: [Int] = []
 
@@ -33,7 +35,7 @@ class DayViewCell: UICollectionViewCell, CAAnimationDelegate {
     private var lastResizeWidth: CGFloat!
     // Height of an hour
     private var hourHeight: CGFloat {
-        return self.bounds.height/DateSupport.hoursInDay
+        return LayoutDefaults.hourHeight
     }
 
     // Delegate variable
@@ -206,12 +208,14 @@ class DayViewCell: UICollectionViewCell, CAAnimationDelegate {
         let linePathCombine = CGMutablePath()
 
         // Generate line separator paths
-        for i in 0...Int(DateSupport.hoursInDay)-1 {
+        print("")
+        for i in 0...HourVariables.maxHour - HourVariables.minHour {
 
             let dottedPath = UIBezierPath()
             let linePath = UIBezierPath()
 
             let y1 = hourHeight*CGFloat(i)
+            print("y1 \(y1)")
             let y2 = hourHeight*CGFloat(i) + hourHeight/2
 
             linePath.move(to: CGPoint(x: 0, y: y1))

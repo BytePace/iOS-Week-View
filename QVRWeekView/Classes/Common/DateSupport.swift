@@ -75,5 +75,19 @@ public class DateSupport {
         dc.nanosecond = 0
         return Calendar.current.date(from: dc)!
     }
+    
+    static func getZeroDate(withHour hour : Int) -> Date {
+        var dc = DateComponents()
+        dc.era = 1
+        dc.year = 1
+        dc.month = 1
+        dc.day = 1
+        dc.hour = hour
+        dc.minute = 0
+        dc.second = 0
+        dc.nanosecond = 0
+        return Calendar.current.date(from: dc)!
+    }
+
 
 }

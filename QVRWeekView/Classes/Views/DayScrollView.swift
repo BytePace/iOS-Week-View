@@ -1079,7 +1079,8 @@ struct LayoutVariables {
     }
 
     private static func updateTotalContentHeight() {
-        totalContentHeight = dayViewCellHeight
+        totalContentHeight = LayoutDefaults.hourHeight * CGFloat(HourVariables.maxHour - HourVariables.minHour)
+        print("totalContentHeight \(totalContentHeight)")
     }
 
     private static func updateTotalContentWidth() {
