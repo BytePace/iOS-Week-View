@@ -27,6 +27,9 @@ open class EventData: CustomStringConvertible, Equatable, Hashable {
     public let color: UIColor
     // Stores if event is an all day event
     public let allDay: Bool
+    // Need to display date
+    public let needToDisplayDateOnEvent: Bool
+    
     // Stores an optional gradient layer which will be used to draw event. Can only be set once.
     private(set) var gradientLayer: CAGradientLayer? { didSet { gradientLayer = oldValue ?? gradientLayer } }
 
@@ -60,12 +63,13 @@ open class EventData: CustomStringConvertible, Equatable, Hashable {
     /**
      Main initializer. All properties.
      */
-    public init(id: String, title: String, startDate: Date, endDate: Date, location: String, color: UIColor, allDay: Bool) {
+    public init(id: String, title: String, startDate: Date, endDate: Date, location: String, color: UIColor, allDay: Bool, needToDisplayDateOnEvent: Bool) {
         self.id = id
         self.title = title
         self.location = location
         self.color = color
         self.allDay = allDay
+        self.needToDisplayDateOnEvent = needToDisplayDateOnEvent
         guard startDate.compare(endDate).rawValue <= 0 else {
             self.startDate = startDate
             self.endDate = startDate
@@ -78,36 +82,36 @@ open class EventData: CustomStringConvertible, Equatable, Hashable {
     /**
      Convenience initializer. All properties except for Int Id instead of String.
      */
-    public convenience init(id: Int, title: String, startDate: Date, endDate: Date, location: String, color: UIColor, allDay: Bool) {
-        self.init(id: String(id), title: title, startDate: startDate, endDate: endDate, location: location, color: color, allDay: allDay)
+    public convenience init(id: Int, title: String, startDate: Date, endDate: Date, location: String, color: UIColor, allDay: Bool, needToDisplayDateOnEvent: Bool) {
+        self.init(id: String(id), title: title, startDate: startDate, endDate: endDate, location: location, color: color, allDay: allDay, needToDisplayDateOnEvent: needToDisplayDateOnEvent)
     }
 
     /**
      Convenience initializer. String Id + no allDay parameter.
      */
     public convenience init(id: String, title: String, startDate: Date, endDate: Date, location: String, color: UIColor) {
-        self.init(id: id, title: title, startDate: startDate, endDate: endDate, location: location, color: color, allDay: false)
+        self.init(id: id, title: title, startDate: startDate, endDate: endDate, location: location, color: color, allDay: false, needToDisplayDateOnEvent: false)
     }
 
     /**
      Convenience initializer. Int Id + no allDay parameter.
      */
     public convenience init(id: Int, title: String, startDate: Date, endDate: Date, location: String, color: UIColor) {
-        self.init(id: id, title: title, startDate: startDate, endDate: endDate, location: location, color: color, allDay: false)
+        self.init(id: id, title: title, startDate: startDate, endDate: endDate, location: location, color: color, allDay: false, needToDisplayDateOnEvent: false)
     }
 
     /**
      Convenience initializer. String Id + no allDay and location parameter.
      */
     public convenience init(id: String, title: String, startDate: Date, endDate: Date, color: UIColor) {
-        self.init(id: id, title: title, startDate: startDate, endDate: endDate, location: "", color: color, allDay: false)
+        self.init(id: id, title: title, startDate: startDate, endDate: endDate, location: "", color: color, allDay: false, needToDisplayDateOnEvent: false)
     }
 
     /**
      Convenience initializer. Int Id + no allDay and location parameter.
      */
     public convenience init(id: Int, title: String, startDate: Date, endDate: Date, color: UIColor) {
-        self.init(id: id, title: title, startDate: startDate, endDate: endDate, location: "", color: color, allDay: false)
+        self.init(id: id, title: title, startDate: startDate, endDate: endDate, location: "", color: color, allDay: false, needToDisplayDateOnEvent: false)
     }
 
     /**
@@ -137,7 +141,7 @@ open class EventData: CustomStringConvertible, Equatable, Hashable {
         let mainFontAttributes: [String: Any] = [NSFontAttributeName: mainFont, NSForegroundColorAttributeName: FontVariables.eventLabelTextColor.cgColor]
         let infoFontAttributes: [String: Any] = [NSFontAttributeName: infoFont, NSForegroundColorAttributeName: FontVariables.eventLabelTextColor.cgColor]
         let mainAttributedString = NSMutableAttributedString(string: self.title, attributes: mainFontAttributes)
-        if !self.allDay {
+        if !self.allDay && self.needToDisplayDateOnEvent {
             mainAttributedString.append(NSMutableAttributedString(
                 string: " (\(df.string(from: self.startDate)) - \(df.string(from: self.endDate)))",
                 attributes: infoFontAttributes)
@@ -238,19 +242,19 @@ open class EventData: CustomStringConvertible, Equatable, Hashable {
     }
 
     public func remakeEventData(withStart start: Date, andEnd end: Date) -> EventData {
-        let newEvent = EventData(id: self.id, title: self.title, startDate: start, endDate: end, location: self.location, color: self.color, allDay: self.allDay)
+        let newEvent = EventData(id: self.id, title: self.title, startDate: start, endDate: end, location: self.location, color: self.color, allDay: self.allDay, needToDisplayDateOnEvent: self.needToDisplayDateOnEvent)
         newEvent.configureGradient(self.gradientLayer)
         return newEvent
     }
 
     public func remakeEventData(withColor color: UIColor) -> EventData {
-        let newEvent = EventData(id: self.id, title: self.title, startDate: self.startDate, endDate: self.endDate, location: self.location, color: color, allDay: self.allDay)
+        let newEvent = EventData(id: self.id, title: self.title, startDate: self.startDate, endDate: self.endDate, location: self.location, color: color, allDay: self.allDay, needToDisplayDateOnEvent: self.needToDisplayDateOnEvent)
         newEvent.configureGradient(self.gradientLayer)
         return newEvent
     }
 
     public func remakeEventDataAsAllDay(forDate date: Date) -> EventData {
-        let newEvent = EventData(id: self.id, title: self.title, startDate: date.getStartOfDay(), endDate: date.getEndOfDay(), location: self.location, color: self.color, allDay: true)
+        let newEvent = EventData(id: self.id, title: self.title, startDate: date.getStartOfDay(), endDate: date.getEndOfDay(), location: self.location, color: self.color, allDay: true, needToDisplayDateOnEvent: self.needToDisplayDateOnEvent)
         newEvent.configureGradient(self.gradientLayer)
         return newEvent
     }
