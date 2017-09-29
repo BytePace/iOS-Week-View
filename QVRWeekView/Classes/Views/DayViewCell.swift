@@ -186,6 +186,26 @@ class DayViewCell: UICollectionViewCell, CAAnimationDelegate {
                                        width: self.bounds.width,
                                        height: bottomDistancePercent*self.bounds.height)
             overlayView.backgroundColor = date.isWeekend() ? LayoutVariables.passedWeekendDayViewColor : LayoutVariables.passedDayViewColor
+            layer.masksToBounds = false
+            hourIndicatorView.layer.masksToBounds = false
+            overlayView.layer.masksToBounds = false
+            let circleLayer = CAShapeLayer()
+            let circleRadius : CGFloat = LayoutVariables.hourIndicatorThickness * 2
+            var f = CGRect.zero
+            f.origin.x = -circleRadius
+            f.origin.y = -circleRadius/2
+            f.size.width = circleRadius * 2
+            f.size.height = circleRadius * 2
+            circleLayer.path = UIBezierPath(ovalIn: f).cgPath
+            circleLayer.fillColor = LayoutVariables.hourIndicatorColor.cgColor
+            
+            let endCircle = CAShapeLayer()
+            f.origin.x = self.bounds.width - circleRadius
+            endCircle.path = UIBezierPath(ovalIn: f).cgPath
+            endCircle.fillColor = LayoutVariables.hourIndicatorColor.cgColor
+            
+            hourIndicatorView.layer.addSublayer(circleLayer)
+            hourIndicatorView.layer.addSublayer(endCircle)
             hourIndicatorView.frame = CGRect(x: 0,
                                              y: overlayView.frame.height-LayoutVariables.hourIndicatorThickness/2,
                                              width: self.bounds.width,
