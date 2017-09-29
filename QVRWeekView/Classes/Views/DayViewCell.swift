@@ -204,6 +204,13 @@ class DayViewCell: UICollectionViewCell, CAAnimationDelegate {
             endCircle.path = UIBezierPath(ovalIn: f).cgPath
             endCircle.fillColor = LayoutVariables.hourIndicatorColor.cgColor
             
+            if let layers = hourIndicatorView.layer.sublayers {
+                for l in layers {
+                    l.removeFromSuperlayer()
+                }
+            }
+            overlayView.bringSubview(toFront: hourIndicatorView)
+            self.superview?.bringSubview(toFront: self)
             hourIndicatorView.layer.addSublayer(circleLayer)
             hourIndicatorView.layer.addSublayer(endCircle)
             hourIndicatorView.frame = CGRect(x: 0,
