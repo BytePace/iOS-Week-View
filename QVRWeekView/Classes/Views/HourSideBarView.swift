@@ -48,7 +48,7 @@ class HourSideBarView: UIView {
 
     func updateLabels () {
         hourLabels.sort { (label1, label2) -> Bool in
-            return label1.text! < label2.text!
+            return label1.tag < label2.tag
         }
 
         var date = DateSupport.getZeroDate()
