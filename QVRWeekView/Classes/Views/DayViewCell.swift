@@ -169,7 +169,7 @@ class DayViewCell: UICollectionViewCell, CAAnimationDelegate {
     }
     
     private func getTime(from yPosition : CGFloat) -> (Int, Int) {
-        let time = Double( ((yPosition-(hourHeight*CGFloat(LayoutVariables.previewEventHeightInHours/2)))/self.frame.height)*24 )
+        let time = Double(yPosition/self.frame.height*24)
         let hours = Int(time)
         let minutes = Int((time-Double(hours))*60)
         return (hours, minutes)
