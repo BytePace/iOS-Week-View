@@ -203,7 +203,6 @@ class DayViewCell: UICollectionViewCell, CAAnimationDelegate {
             f.origin.x = self.bounds.width - circleRadius
             endCircle.path = UIBezierPath(ovalIn: f).cgPath
             endCircle.fillColor = LayoutVariables.hourIndicatorColor.cgColor
-            
             if let layers = hourIndicatorView.layer.sublayers {
                 for l in layers {
                     l.removeFromSuperlayer()
@@ -217,7 +216,7 @@ class DayViewCell: UICollectionViewCell, CAAnimationDelegate {
                                              y: overlayView.frame.height-LayoutVariables.hourIndicatorThickness/2,
                                              width: self.bounds.width,
                                              height: LayoutVariables.hourIndicatorThickness)
-            hourIndicatorView.backgroundColor = LayoutVariables.hourIndicatorColor
+            hourIndicatorView.backgroundColor = UIColor.red //LayoutVariables.hourIndicatorColor
         }
 
     }

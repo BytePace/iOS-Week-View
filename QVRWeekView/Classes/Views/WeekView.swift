@@ -9,6 +9,7 @@ import UIKit
  and all customization can be done with public functions. No delegates have been implemented yet.
  WeekView can be used in both landscape and portrait mode.
  */
+
 open class WeekView: UIView {
 
     // MARK: - OUTLETS -
@@ -40,11 +41,11 @@ open class WeekView: UIView {
     // The actual view being displayed, all other views are subview of this mainview
     private(set) var mainView: UIView!
     // Array of visible daylabels
-    private var visibleDayLabels: [DayDate: UILabel] = [:]
+    private var visibleDayLabels: [DayDate: TopBarViewContainer] = [:]
     // Array of visible allDayEvents
     private var visibleAllDayEvents: [DayDate: [EventData: CAShapeLayer]] = [:]
     // Array of labels not being displayed
-    private var discardedDayLabels: [UILabel] = []
+    private var discardedDayViews: [TopBarViewContainer] = []
     // Left side buffer for top bar
     private var topBarLeftBuffer: CGFloat = 0
     // Top side buffer for side bar
@@ -255,30 +256,31 @@ open class WeekView: UIView {
      Adds a dayLabel at indexPath with given date.
      */
     func addDayLabel(forIndexPath indexPath: IndexPath, withDate dayDate: DayDate) {
+        var item : TopBarViewContainer!
 
-        var label: UILabel!
-        if !discardedDayLabels.isEmpty {
-            label = discardedDayLabels.remove(at: 0)
-            label.frame = Util.generateDayLabelFrame(forIndex: indexPath)
+        if !discardedDayViews.isEmpty {
+            item = discardedDayViews.remove(at: 0)
+            item.frame = Util.generateDayLabelFrame(forIndex: indexPath)
         }
         else {
-            label = Util.makeDayLabel(withIndexPath: indexPath)
+            item = Util.makeDayLabel(withIndexPath: indexPath)
         }
-        updateDayLabel(label, withDate: dayDate)
-        visibleDayLabels[dayDate] = label
-        self.topBarView.addSubview(label)
+        updateDayItem(item, withDate: dayDate)
+        item.delegate = self
+        visibleDayLabels[dayDate] = item
+        self.topBarView.addSubview(item)
     }
 
     /**
      Discards the day label at given date. This does not completely remove the day label. It is stored as a
      discarded day label and can be recycled later.
      */
-    func discardDayLabel(withDate date: DayDate) {
+    func discardDayView(withDate date: DayDate) {
 
-        if let label = visibleDayLabels[date] {
-            label.removeFromSuperview()
+        if let item = visibleDayLabels[date] {
+            item.removeFromSuperview()
             visibleDayLabels.removeValue(forKey: date)
-            discardedDayLabels.append(label)
+            discardedDayViews.append(item)
         }
         trashExtraDiscardedDayLabels()
     }
@@ -407,9 +409,9 @@ open class WeekView: UIView {
             if let dayViewCell = cell as? DayViewCell {
                 let dayDate = dayViewCell.date
 
-                if let label = visibleDayLabels[dayDate] {
-                    label.frame = Util.generateDayLabelFrame(forIndex: indexPath)
-                    updateDayLabel(label, withDate: dayDate)
+                if let item = visibleDayLabels[dayDate] {
+                    item.frame = Util.generateDayLabelFrame(forIndex: indexPath)
+                    updateDayItem(item, withDate: dayDate)
                 }
             }
         }
@@ -418,10 +420,9 @@ open class WeekView: UIView {
     /**
      Method updates a day labels font, text color and also performs a text assignment resize check.
      */
-    private func updateDayLabel(_ dayLabel: UILabel, withDate dayDate: DayDate) {
-        dayLabel.font = FontVariables.dayLabelCurrentFont
-        dayLabel.textColor = dayDate == DayDate.today ? FontVariables.dayLabelTodayTextColor : FontVariables.dayLabelTextColor
-        if let newFontSize = Util.assignTextAndResizeFont(forLabel: dayLabel, andDate: dayDate) {
+    private func updateDayItem(_ dayItem: TopBarViewContainer, withDate dayDate: DayDate) {
+        dayItem.update(withDate : dayDate)
+        if let newFontSize = Util.assignTextAndResizeFont(forLabel: dayItem.dayLabel, andDate: dayDate) {
             FontVariables.dayLabelCurrentFontSize = newFontSize
             updateVisibleDayLabels()
         }
@@ -433,10 +434,10 @@ open class WeekView: UIView {
     private func trashExtraDiscardedDayLabels() {
         let maxAllowed = Int(LayoutVariables.visibleDays)
 
-        if discardedDayLabels.count > maxAllowed {
-            let overflow = discardedDayLabels.count - maxAllowed
+        if discardedDayViews.count > maxAllowed {
+            let overflow = discardedDayViews.count - maxAllowed
             for _ in 0...overflow {
-                discardedDayLabels.removeFirst()
+                discardedDayViews.removeFirst()
             }
         }
     }
@@ -457,6 +458,12 @@ open class WeekView: UIView {
         }
     }
 
+}
+
+extension WeekView : TopBarViewContainerProtocol {
+    func topBarViewContainerCrossSelected(item: TopBarViewContainer) {
+        delegate?.didTapTopCrossButton(in: self, atDate: item.dayDate.getDateWithTime(hours: 12, minutes: 0, seconds: 0))
+    }
 }
 
 /**
@@ -493,6 +500,7 @@ extension WeekView {
  Protocol methods.
  */
 @objc public protocol WeekViewDelegate: class {
+    func didTapTopCrossButton(in weekView : WeekView, atDate date: Date)
     func didLongPressDayView(in weekView: WeekView, atDate date: Date)
     
     func didTapDayView(in weekView: WeekView, atDate date: Date)
