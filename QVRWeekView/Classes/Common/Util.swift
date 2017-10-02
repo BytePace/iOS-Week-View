@@ -13,26 +13,12 @@ import Foundation
 struct Util {
 
     // Function returns a dayLabel UILabel with the correct size and position according to given indexPath.
-    static func makeDayLabel(withIndexPath indexPath: IndexPath) -> TopBarViewItem {
+    static func makeDayLabel(withIndexPath indexPath: IndexPath) -> TopBarViewContainer {
 
         // Make as daylabel
         let frame = Util.generateDayLabelFrame(forIndex: indexPath)
-        let view = UIView(frame: frame)
-        var labelRect = frame
-        labelRect.origin.x = 0
-        labelRect.origin.y = 0
-        let dayLabel = UILabel(frame: labelRect)
-        dayLabel.textAlignment = .center
-        view.layer.masksToBounds = true
-        view.addSubview(dayLabel)
-        let button = UIButton(type : .custom)
-        labelRect.origin.y = frame.size.height / 2
-        labelRect.size.height = frame.size.height / 2
-        button.frame = frame
-        button.setTitle("X", for: .normal)
-        button.setTitleColor(UIColor.black, for: .normal)
-        view.addSubview(button)
-        return (view, dayLabel, button)
+        let view = TopBarViewContainer(frame: frame)
+        return view
     }
 
     /**
@@ -143,4 +129,78 @@ extension FontVariables {
     // Day label text mode determines which format the day labels will be displayed in. 0 is the longest, 1 is smaller, 2 is smallest format.
     fileprivate(set) static var dayLabelTextMode: TextMode = .large
 
+}
+
+protocol TopBarViewContainerProtocol : class {
+    func topBarViewContainerCrossSelected(item : TopBarViewContainer)
+}
+
+class TopBarViewContainer: UIView {
+    weak var delegate : TopBarViewContainerProtocol?
+    
+    var dayLabel : UILabel!
+    var button : UIButton!
+    var dayDate : DayDate!
+    
+    func update(withDate date: DayDate) {
+        dayDate = date
+        dayLabel.font = FontVariables.dayLabelCurrentFont
+        dayLabel.textColor = date == DayDate.today ? FontVariables.dayLabelTodayTextColor : FontVariables.dayLabelTextColor
+    }
+    
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        initialize()
+    }
+    
+    required init?(coder aDecoder: NSCoder) {
+        super.init(coder: aDecoder)
+        initialize()
+    }
+    
+    func initialize() {
+        var f = frame
+        f.origin.x = 0
+        f.origin.y = 0
+        dayLabel = UILabel(frame: f)
+        dayLabel.backgroundColor = UIColor.clear
+        dayLabel.textAlignment = .center
+        
+        addSubview(dayLabel)
+        
+        button = UIButton(type : .custom)
+        button.addTarget(self, action: #selector(TopBarViewContainer.buttonSelected(_:)), for: .touchUpInside)
+        
+        button.setTitle("X", for: .normal)
+        button.setTitleColor(UIColor.black, for: .normal)
+        button.backgroundColor = UIColor.clear
+        button.showsTouchWhenHighlighted = true
+        addSubview(button)
+    
+    }
+    
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        var labelRect = frame
+        labelRect.origin.x = 0
+        labelRect.origin.y = 0
+        labelRect.size.height = frame.size.height / 2
+        dayLabel.frame = labelRect
+        
+        labelRect.origin.y = frame.size.height / 2
+        button.frame = labelRect
+    }
+    
+    @objc fileprivate func buttonSelected(_ sender : Any) {
+        delegate?.topBarViewContainerCrossSelected(item: self)
+    }
+    
+    /*
+     // Only override draw() if you perform custom drawing.
+     // An empty implementation adversely affects performance during animation.
+     override func draw(_ rect: CGRect) {
+     // Drawing code
+     }
+     */
+    
 }
