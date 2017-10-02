@@ -171,10 +171,10 @@ class TopBarViewContainer: UIView {
         button = UIButton(type : .custom)
         button.addTarget(self, action: #selector(TopBarViewContainer.buttonSelected(_:)), for: .touchUpInside)
         
-        button.setTitle("X", for: .normal)
+        button.setTitle("", for: .normal)
         button.setTitleColor(UIColor.black, for: .normal)
         button.backgroundColor = UIColor.clear
-        button.showsTouchWhenHighlighted = true
+        button.setImage(UIImage(named: "cross-mark"), for: .normal)
         addSubview(button)
     
     }
