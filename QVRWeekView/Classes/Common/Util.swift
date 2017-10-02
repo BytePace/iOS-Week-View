@@ -18,10 +18,19 @@ struct Util {
         // Make as daylabel
         let frame = Util.generateDayLabelFrame(forIndex: indexPath)
         let view = UIView(frame: frame)
-        let dayLabel = UILabel(frame: frame)
+        var labelRect = frame
+        labelRect.origin.x = 0
+        labelRect.origin.y = 0
+        let dayLabel = UILabel(frame: labelRect)
         dayLabel.textAlignment = .center
+        view.layer.masksToBounds = true
         view.addSubview(dayLabel)
         let button = UIButton(type : .custom)
+        labelRect.origin.y = frame.size.height / 2
+        labelRect.size.height = frame.size.height / 2
+        button.frame = frame
+        button.setTitle("X", for: .normal)
+        button.setTitleColor(UIColor.black, for: .normal)
         view.addSubview(button)
         return (view, dayLabel, button)
     }

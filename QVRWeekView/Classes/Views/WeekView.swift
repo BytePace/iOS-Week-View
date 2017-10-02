@@ -257,22 +257,22 @@ open class WeekView: UIView {
      Adds a dayLabel at indexPath with given date.
      */
     func addDayLabel(forIndexPath indexPath: IndexPath, withDate dayDate: DayDate) {
-        var item = TopBarViewItem!
-//        var view : UIView!
-//        var label : UILabel!
-//        var button : UIButton!
-        
+        var item : TopBarViewItem!
+
         if !discardedDayViews.isEmpty {
             item = discardedDayViews.remove(at: 0)
-            var view = item.0
-            view.frame = Util.generateDayLabelFrame(forIndex: indexPath)
+            var frame = Util.generateDayLabelFrame(forIndex: indexPath)
+            item.0.frame = frame
+            frame.origin.x = 0
+            frame.origin.y = 0
+            item.1.frame = frame
         }
         else {
             item = Util.makeDayLabel(withIndexPath: indexPath)
         }
         updateDayLabel(item.1, withDate: dayDate)
         visibleDayLabels[dayDate] = item
-        self.topBarView.addSubview(view)
+        self.topBarView.addSubview(item.0)
     }
 
     /**
@@ -281,10 +281,10 @@ open class WeekView: UIView {
      */
     func discardDayView(withDate date: DayDate) {
 
-        if let label = visibleDayLabels[date] {
-            label.removeFromSuperview()
+        if let item = visibleDayLabels[date] {
+            item.0.removeFromSuperview()
             visibleDayLabels.removeValue(forKey: date)
-            discardedDayViews.append(label)
+            discardedDayViews.append(item)
         }
         trashExtraDiscardedDayLabels()
     }
@@ -413,9 +413,13 @@ open class WeekView: UIView {
             if let dayViewCell = cell as? DayViewCell {
                 let dayDate = dayViewCell.date
 
-                if let label = visibleDayLabels[dayDate] {
-                    label.frame = Util.generateDayLabelFrame(forIndex: indexPath)
-                    updateDayLabel(label, withDate: dayDate)
+                if let item = visibleDayLabels[dayDate] {
+                    var frame = Util.generateDayLabelFrame(forIndex: indexPath)
+                    item.0.frame = frame
+                    frame.origin.x = 0
+                    frame.origin.y = 0
+                    item.1.frame = frame
+                    updateDayLabel(item.1, withDate: dayDate)
                 }
             }
         }

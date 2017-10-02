@@ -199,7 +199,7 @@ UICollectionViewDelegate, UICollectionViewDataSource, DayViewCellDelegate, Frame
     func collectionView(_ collectionView: UICollectionView, didEndDisplaying cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
         if let weekView = self.superview?.superview as? WeekView, let dayViewCell = cell as? DayViewCell {
             let dayDate = dayViewCell.date
-            weekView.discardDayLabel(withDate: dayDate)
+            weekView.discardDayView(withDate: dayDate)
             if weekView.hasAllDayEvents(forDate: dayDate) {
                 weekView.removeAllDayEvents(forDate: dayDate)
             }
