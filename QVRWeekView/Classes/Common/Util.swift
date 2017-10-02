@@ -13,13 +13,17 @@ import Foundation
 struct Util {
 
     // Function returns a dayLabel UILabel with the correct size and position according to given indexPath.
-    static func makeDayLabel(withIndexPath indexPath: IndexPath) -> UILabel {
+    static func makeDayLabel(withIndexPath indexPath: IndexPath) -> TopBarViewItem {
 
         // Make as daylabel
-        let labelFrame = Util.generateDayLabelFrame(forIndex: indexPath)
-        let dayLabel = UILabel(frame: labelFrame)
+        let frame = Util.generateDayLabelFrame(forIndex: indexPath)
+        let view = UIView(frame: frame)
+        let dayLabel = UILabel(frame: frame)
         dayLabel.textAlignment = .center
-        return dayLabel
+        view.addSubview(dayLabel)
+        let button = UIButton(type : .custom)
+        view.addSubview(button)
+        return (view, dayLabel, button)
     }
 
     /**
@@ -38,6 +42,11 @@ struct Util {
         return (eventStore[dayDate] == nil) || (!eventStore[dayDate]!.contains(event))
     }
 
+    // Function generates a frame for a day label with given index path.
+    static func generateDayViewFrame(forIndex indexPath: IndexPath) -> CGRect {
+        return generateDayLabelFrame(forIndex:indexPath)
+    }
+    
     // Function generates a frame for a day label with given index path.
     static func generateDayLabelFrame(forIndex indexPath: IndexPath) -> CGRect {
         let row = CGFloat(indexPath.row)
