@@ -12,7 +12,7 @@ import Foundation
  Class event data stores basic data needed by the rest of the code to calculate and draw events in the dayViewCells in the dayScrollView.
  */
 open class EventData: CustomStringConvertible, Equatable, Hashable {
-
+    fileprivate var font : UIFont?
     // Id of the event
     public let id: String
     // Title of the event
@@ -138,7 +138,7 @@ open class EventData: CustomStringConvertible, Equatable, Hashable {
     open func getDisplayString(withMainFont mainFont: UIFont = FontVariables.eventLabelFont, andInfoFont infoFont: UIFont = FontVariables.eventLabelInfoFont) -> NSAttributedString {
         let df = DateFormatter()
         df.dateFormat = "HH:mm"
-        let mainFontAttributes: [String: Any] = [NSFontAttributeName: mainFont, NSForegroundColorAttributeName: FontVariables.eventLabelTextColor.cgColor]
+        let mainFontAttributes: [String: Any] = [NSFontAttributeName: self.font ?? mainFont, NSForegroundColorAttributeName: FontVariables.eventLabelTextColor.cgColor]
         let infoFontAttributes: [String: Any] = [NSFontAttributeName: infoFont, NSForegroundColorAttributeName: FontVariables.eventLabelTextColor.cgColor]
         let mainAttributedString = NSMutableAttributedString(string: self.title, attributes: mainFontAttributes)
         if !self.allDay && self.needToDisplayDateOnEvent {
@@ -260,17 +260,29 @@ open class EventData: CustomStringConvertible, Equatable, Hashable {
     }
     
     public func centerTextVertically(value : Bool) {
-        for sub in self.layer.sublayers! {
-            guard let text = sub as? CenteredTextLayer else { continue }
-            text.centerVertically = value
-            
-        }
+        guard let text = getTextLayer() else { return }
+        text.centerVertically = value
     }
     public func setTextAlignment(alignment : String) {
-        for sub in self.layer.sublayers! {
+        guard let text = getTextLayer() else { return }
+        text.alignmentMode = alignment
+    }
+    
+    public func setFont(font : UIFont) {
+        guard let text = getTextLayer() else { return }
+        self.font = font
+        text.string = self.getDisplayString(
+            withMainFont: font,
+            andInfoFont: font)
+    }
+    
+    private func getTextLayer() -> CenteredTextLayer? {
+        guard let sublayers = layer.sublayers else { return nil }
+        for sub in sublayers {
             guard let text = sub as? CenteredTextLayer else { continue }
-            text.alignmentMode = alignment
+            return text
         }
+        return nil
     }
 }
 
