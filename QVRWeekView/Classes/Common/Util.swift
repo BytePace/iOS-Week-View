@@ -170,6 +170,7 @@ class TopBarViewContainer: UIView {
         
         button = UIButton(type : .custom)
         button.addTarget(self, action: #selector(TopBarViewContainer.buttonSelected(_:)), for: .touchUpInside)
+        button.imageView?.contentMode = .scaleAspectFit
         
         button.setTitle("", for: .normal)
         button.setTitleColor(UIColor.black, for: .normal)
