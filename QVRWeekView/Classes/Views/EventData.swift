@@ -53,7 +53,7 @@ open class EventData: CustomStringConvertible, Equatable, Hashable {
         else {
             layer.fillColor = self.color.cgColor
         }
-        let eventTextLayer = CATextLayer()
+        let eventTextLayer = CenteredTextLayer()
         eventTextLayer.isWrapped = true
         eventTextLayer.contentsScale = UIScreen.main.scale
         layer.addSublayer(eventTextLayer)
@@ -182,7 +182,7 @@ open class EventData: CustomStringConvertible, Equatable, Hashable {
                 gradient.frame = frame
                 CATransaction.commit()
             }
-            else if let text = sub as? CATextLayer {
+            else if let text = sub as? CenteredTextLayer {
                 if resizeText {
                     CATransaction.setDisableActions(false)
                     if let string = text.string as? NSAttributedString {
@@ -257,5 +257,50 @@ open class EventData: CustomStringConvertible, Equatable, Hashable {
         let newEvent = EventData(id: self.id, title: self.title, startDate: date.getStartOfDay(), endDate: date.getEndOfDay(), location: self.location, color: self.color, allDay: true, needToDisplayDateOnEvent: self.needToDisplayDateOnEvent)
         newEvent.configureGradient(self.gradientLayer)
         return newEvent
+    }
+    
+    public func centerTextVertically(value : Bool) {
+        for sub in self.layer.sublayers! {
+            guard let text = sub as? CenteredTextLayer else { continue }
+            text.centerVertically = value
+            
+        }
+    }
+    public func setTextAlignment(alignment : String) {
+        for sub in self.layer.sublayers! {
+            guard let text = sub as? CenteredTextLayer else { continue }
+            text.alignmentMode = alignment
+        }
+    }
+}
+
+class CenteredTextLayer: CATextLayer {
+    
+    // REF: http://lists.apple.com/archives/quartz-dev/2008/Aug/msg00016.html
+    // CREDIT: David Hoerl - https://github.com/dhoerl
+    // USAGE: To fix the vertical alignment issue that currently exists within the CATextLayer class. Change made to the yDiff calculation.
+    var centerVertically : Bool = false
+    
+    override init() {
+        super.init()
+    }
+    
+    required init(coder aDecoder: NSCoder) {
+        super.init(layer: aDecoder)
+    }
+    
+    override func draw(in ctx: CGContext) {
+        if centerVertically {
+            let height = self.bounds.size.height
+            let fontSize = self.fontSize
+            let yDiff = height/2 - fontSize/UIScreen.main.scale/2
+            
+            ctx.saveGState()
+            ctx.translateBy(x: 0.0, y: yDiff)
+            super.draw(in: ctx)
+            ctx.restoreGState()
+        } else {
+            super.draw(in: ctx)
+        }
     }
 }
