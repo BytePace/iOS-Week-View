@@ -233,7 +233,8 @@ open class EventData: CustomStringConvertible, Equatable, Hashable {
                         splitEvents[DayDate(date: date)] = self.remakeEventData(withStart: date.getStartOfDay(), andEnd: endDate)
                     }
                     else {
-                        splitEvents[DayDate(date: date)] = self.remakeEventDataAsAllDay(forDate: date)
+//                        splitEvents[DayDate(date: date)] = self.remakeEventDataAsAllDay(forDate: date)
+                        splitEvents[DayDate(date: date)] = self.remakeEventData(withStart: date.getStartOfDay(), andEnd: endDate)
                     }
                 }
             }
