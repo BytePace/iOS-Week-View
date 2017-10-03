@@ -146,6 +146,7 @@ class TopBarViewContainer: UIView {
         dayDate = date
         dayLabel.font = FontVariables.dayLabelCurrentFont
         dayLabel.textColor = date == DayDate.today ? FontVariables.dayLabelTodayTextColor : FontVariables.dayLabelTextColor
+        button.isHidden = date.hasPassed() && !date.isToday()
     }
     
     override init(frame: CGRect) {
