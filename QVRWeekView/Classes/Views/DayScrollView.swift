@@ -8,9 +8,9 @@ import UIKit
  */
 class DayScrollView: UIScrollView, UIScrollViewDelegate,
 UICollectionViewDelegate, UICollectionViewDataSource, DayViewCellDelegate, FrameCalculatorDelegate {
-
+    
     // MARK: - INSTANCE VARIABLES -
-
+    
     // Collection view
     private(set) var dayCollectionView: DayCollectionView!
     // All eventData objects
@@ -53,29 +53,29 @@ UICollectionViewDelegate, UICollectionViewDataSource, DayViewCellDelegate, Frame
     private var previousZoomTouch: CGPoint?
     // Current zoom scale of content
     private var lastTouchZoomScale = CGFloat(1)
-
+    
     // MARK: - CONSTRUCTORS/OVERRIDES -
-
+    
     required init?(coder aDecoder: NSCoder) {
         super.init(coder: aDecoder)
         initDayScrollView()
     }
-
+    
     override init(frame: CGRect) {
         super.init(frame: frame)
         initDayScrollView()
     }
-
+    
     /**
      Generates and fills the scroll view with day columns.
      */
     private func initDayScrollView() {
-
+        
         // Set visible days variable for device orientation
         LayoutVariables.orientation = UIApplication.shared.statusBarOrientation
         LayoutVariables.activeFrameWidth = self.frame.width
         LayoutVariables.activeFrameHeight = self.frame.height
-
+        
         // Make day collection view and add it to frame
         dayCollectionView = DayCollectionView(frame: CGRect(x: 0,
                                                             y: 0,
@@ -87,14 +87,14 @@ UICollectionViewDelegate, UICollectionViewDataSource, DayViewCellDelegate, Frame
         dayCollectionView.delegate = self
         dayCollectionView.dataSource = self
         self.addSubview(dayCollectionView)
-
+        
         // Set content size for vertical scrolling
         self.contentSize = CGSize(width: self.bounds.width, height: dayCollectionView.frame.height)
         self.contentOffset = CGPoint(x: 0, y: LayoutVariables.dayViewCellHeight*DateSupport.getPercentTodayPassed())
-
+        
         // Add tap gesture recognizer
         self.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(tap(_:))))
-
+        
         // Set scroll view properties
         self.isDirectionalLockEnabled = true
         self.showsVerticalScrollIndicator = false
@@ -102,30 +102,30 @@ UICollectionViewDelegate, UICollectionViewDataSource, DayViewCellDelegate, Frame
         self.decelerationRate = UIScrollViewDecelerationRateFast
         self.delegate = self
     }
-
+    
     override func layoutSubviews() {
-
+        
         if self.frame.width != LayoutVariables.activeFrameWidth || self.frame.height != LayoutVariables.activeFrameHeight {
             updateLayout()
         }
     }
-
+    
     // MARK: - GESTURE, SCROLL & DATA SOURCE FUNCTIONS -
-
+    
     func tap(_ sender: UITapGestureRecognizer) {
-
+        
         if !self.dayCollectionView.isDragging && !self.dayCollectionView.isDecelerating {
             scrollToNearestCell()
         }
     }
-
+    
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
-
+        
         // Handle side and top bar animations
         if let weekView = self.superview?.superview as? WeekView {
             weekView.updateTopAndSideBarPositions()
         }
-
+        
         if let collectionView = scrollView as? DayCollectionView {
             if collectionView.contentOffset.x < LayoutVariables.minOffsetX {
                 resetView(withYearOffsetChange: -1)
@@ -133,12 +133,12 @@ UICollectionViewDelegate, UICollectionViewDataSource, DayViewCellDelegate, Frame
             else if collectionView.contentOffset.x > LayoutVariables.maxOffsetX {
                 resetView(withYearOffsetChange: 1)
             }
-
+            
             let cvLeft = CGPoint(x: collectionView.contentOffset.x, y: collectionView.center.y + collectionView.contentOffset.y)
             if  let path = collectionView.indexPathForItem(at: cvLeft),
                 let dayViewCell = collectionView.cellForItem(at: path) as? DayViewCell,
                 !scrollingToDay, activeDay != dayViewCell.date {
-
+                
                 self.activeDay = dayViewCell.date
                 if activeDay > currentPeriod.lateMidLimit {
                     updatePeriod()
@@ -149,28 +149,39 @@ UICollectionViewDelegate, UICollectionViewDataSource, DayViewCellDelegate, Frame
             }
         }
     }
-
+    
+    func getVisiblePeriod() -> (Date, Date)? {
+        guard let collectionView = dayCollectionView else { return nil }
+        guard var visibleCells = collectionView.visibleCells as? [DayViewCell] else { return nil }
+        visibleCells.sort { (cell1, cell2) -> Bool in
+            return cell1.date.dateObj.compare(cell2.date.dateObj) == .orderedAscending
+        }
+        guard let startDate = visibleCells.first?.date.dateObj, let endDate = visibleCells.last?.date.dateObj else { return nil }
+        
+        return (startDate, endDate)
+    }
+    
     func scrollViewDidEndScrollingAnimation(_ scrollView: UIScrollView) {
         if scrollView is DayCollectionView && scrollingToDay {
             scrollingToDay = false
             requestEvents()
         }
     }
-
+    
     func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
         if !decelerate {
             scrollToNearestCell()
         }
     }
-
+    
     func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
         scrollToNearestCell()
     }
-
+    
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         return LayoutVariables.collectionViewCellCount
     }
-
+    
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         if let dayViewCell = collectionView.dequeueReusableCell(withReuseIdentifier: CellKeys.dayViewCell, for: indexPath) as? DayViewCell {
             dayViewCell.clearValues()
@@ -185,7 +196,7 @@ UICollectionViewDelegate, UICollectionViewDataSource, DayViewCellDelegate, Frame
         }
         return UICollectionViewCell(frame: CGRect(x: 0, y: 0, width: 0, height: 0))
     }
-
+    
     func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
         if let weekView = self.superview?.superview as? WeekView, let dayViewCell = cell as? DayViewCell {
             let dayDate = dayViewCell.date
@@ -195,7 +206,7 @@ UICollectionViewDelegate, UICollectionViewDataSource, DayViewCellDelegate, Frame
             }
         }
     }
-
+    
     func collectionView(_ collectionView: UICollectionView, didEndDisplaying cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
         if let weekView = self.superview?.superview as? WeekView, let dayViewCell = cell as? DayViewCell {
             let dayDate = dayViewCell.date
@@ -205,13 +216,13 @@ UICollectionViewDelegate, UICollectionViewDataSource, DayViewCellDelegate, Frame
             }
         }
     }
-
+    
     func eventViewWasTappedIn(_ dayViewCell: DayViewCell, withEventData eventData: EventData) {
         if let weekView = self.superview?.superview as? WeekView {
             weekView.eventViewWasTapped(eventData)
         }
     }
-
+    
     func dayViewCellWasLongPressed(_ dayViewCell: DayViewCell, hours: Int, minutes: Int) {
         if let weekView = self.superview?.superview as? WeekView {
             weekView.dayViewCellWasLongPressed(dayViewCell, at: hours, and: minutes)
@@ -240,7 +251,7 @@ UICollectionViewDelegate, UICollectionViewDataSource, DayViewCellDelegate, Frame
         }
         return false
     }
-
+    
     // solution == nil => do not render events. solution.isEmpty => render empty
     func passSolution(fromCalculator calculator: FrameCalculator, solution: [String : CGRect]?) {
         let date = calculator.date
@@ -255,9 +266,9 @@ UICollectionViewDelegate, UICollectionViewDataSource, DayViewCellDelegate, Frame
             }
         }
     }
-
+    
     // MARK: - INTERNAL FUNCTIONS -
-
+    
     func goToAndShow(dayDate: DayDate, showNow: Bool=false) {
         let animated = dayDate.year == activeYear
         activeYear = dayDate.year
@@ -273,7 +284,7 @@ UICollectionViewDelegate, UICollectionViewDataSource, DayViewCellDelegate, Frame
             requestEvents()
         }
         dayCollectionView.reloadData()
-
+        
         if showNow {
             let yOffset = LayoutVariables.totalContentHeight*DateSupport.getPercentTodayPassed()-(LayoutVariables.activeFrameHeight/2)
             let minOffsetY = LayoutVariables.minOffsetY
@@ -281,12 +292,12 @@ UICollectionViewDelegate, UICollectionViewDataSource, DayViewCellDelegate, Frame
             self.setContentOffset(CGPoint(x:0, y: yOffset < minOffsetY ? minOffsetY : (yOffset > maxOffsetY ? maxOffsetY : yOffset)), animated: true)
         }
     }
-
+    
     func zoomContent(withNewScale newZoomScale: CGFloat, newTouchCenter touchCenter: CGPoint?, andState state: UIGestureRecognizerState) {
-
+        
         // Store previous zoom scale
         let previousZoom = LayoutVariables.zoomScale
-
+        
         var zoomChange = CGFloat(0)
         // If zoom just began, set last touch scale
         if state == .began {
@@ -297,7 +308,7 @@ UICollectionViewDelegate, UICollectionViewDataSource, DayViewCellDelegate, Frame
             zoomChange = newZoomScale - lastTouchZoomScale
             self.lastTouchZoomScale = newZoomScale
         }
-
+        
         // Set current zoom
         var currentZoom = previousZoom + zoomChange
         if currentZoom < LayoutDefaults.minimumZoom {
@@ -311,14 +322,14 @@ UICollectionViewDelegate, UICollectionViewDataSource, DayViewCellDelegate, Frame
         updateLayout()
         // Calculate the new y content offset based on zoom change and touch center
         let m = previousZoom/currentZoom
-
+        
         var newYOffset = self.contentOffset.y
         if touchCenter != nil {
             let oldAnchorY = touchCenter!.y+self.contentOffset.y
             let offsetChange = oldAnchorY*(m-1)
             newYOffset -= offsetChange
         }
-
+        
         // Calculate additional y content offset change based on scrolling movements
         if let previousTouchCenter = previousZoomTouch {
             if let touch = touchCenter {
@@ -329,7 +340,7 @@ UICollectionViewDelegate, UICollectionViewDataSource, DayViewCellDelegate, Frame
         else {
             self.previousZoomTouch = touchCenter
         }
-
+        
         // Check that new y offset is not out of bounds
         if newYOffset < LayoutVariables.minOffsetY {
             newYOffset = LayoutVariables.minOffsetY
@@ -337,10 +348,10 @@ UICollectionViewDelegate, UICollectionViewDataSource, DayViewCellDelegate, Frame
         else if newYOffset > LayoutVariables.maxOffsetY {
             newYOffset = LayoutVariables.maxOffsetY
         }
-
+        
         // Pass new y offset to scroll view
         self.contentOffset.y = newYOffset
-
+        
         if state == .cancelled || state == .ended || state == .failed {
             self.previousZoomTouch = nil
             for (_, cell) in dayViewCells {
@@ -349,17 +360,17 @@ UICollectionViewDelegate, UICollectionViewDataSource, DayViewCellDelegate, Frame
             scrollToNearestCell()
         }
     }
-
+    
     func getDayDate(forIndexPath indexPath: IndexPath) -> DayDate {
         let date = DateSupport.getDate(fromDayOfYear: indexPath.row, forYear: activeYear)
         return DayDate(date: date)
     }
-
+    
     func overwriteAllEvents(withData eventsData: [EventData]!) {
         guard eventsData != nil else {
             return
         }
-
+        
         if eptRunning {
             eptTempData = eventsData
             eptSafeContinue = false
@@ -370,14 +381,14 @@ UICollectionViewDelegate, UICollectionViewDataSource, DayViewCellDelegate, Frame
             eptSafeContinue = true
         }
         DispatchQueue.global(qos: .userInitiated).async {
-
+            
             // New eventsdata
             var newEventsData: [DayDate: [String: EventData]] = [:]
             // New all day events
             var newAllDayEvents: [DayDate: [EventData]] = [:]
             // Stores the days which will be changed
             var changedDayDates = Set<DayDate>()
-
+            
             // Process raw event data and sort it into the allEventsData dictionary. Also check to see which
             // days have had any changes done to them to queue them up for processing.
             for eventData in eventsData {
@@ -399,7 +410,7 @@ UICollectionViewDelegate, UICollectionViewDataSource, DayViewCellDelegate, Frame
                     }
                 }
             }
-
+            
             // Get sequence of active days
             let activeDates = DateSupport.getAllDayDates(between: self.currentPeriod.startDate,
                                                          and: self.currentPeriod.endDate)
@@ -410,18 +421,18 @@ UICollectionViewDelegate, UICollectionViewDataSource, DayViewCellDelegate, Frame
                     break
                 }
             }
-
+            
             guard self.eptSafeContinue else {
                 self.safeCallbackOverwriteAllEvents()
                 return
             }
-
+            
             let sortedChangedDays = changedDayDates.sorted { (smaller, larger) -> Bool in
                 let diff1 = abs(smaller.dayInYear - self.activeDay.dayInYear)
                 let diff2 = abs(larger.dayInYear - self.activeDay.dayInYear)
                 return diff1 == diff2 ? smaller > larger : diff1 < diff2
             }
-
+            
             // Safe exit
             DispatchQueue.main.sync {
                 self.eptRunning = false
@@ -455,7 +466,7 @@ UICollectionViewDelegate, UICollectionViewDataSource, DayViewCellDelegate, Frame
             }
         }
     }
-
+    
     func requestEvents() {
         if let weekView = self.superview?.superview as? WeekView, !scrollingToDay {
             self.currentPeriod = Period(ofDate: activeDay)
@@ -473,34 +484,34 @@ UICollectionViewDelegate, UICollectionViewDataSource, DayViewCellDelegate, Frame
             cell.removePreviewLayer()
         }
     }
-
+    
     // MARK: - HELPER/PRIVATE FUNCTIONS -
-
+    
     private func safeCallbackOverwriteAllEvents() {
         DispatchQueue.main.sync {
             eptRunning = false
             overwriteAllEvents(withData: eptTempData)
         }
     }
-
+    
     fileprivate func updateLayout() {
-
+        
         // Get old offset ratio before resizing cells
         let oldXOffset = dayCollectionView.contentOffset.x
         let oldWidth = dayCollectionView.contentSize.width
-
+        
         // Update layout variables
         LayoutVariables.activeFrameWidth = self.frame.width
         LayoutVariables.activeFrameHeight = self.frame.height
         LayoutVariables.orientation = UIApplication.shared.statusBarOrientation
         // Update scroll view content size
         self.contentSize = CGSize(width: LayoutVariables.activeFrameWidth, height: LayoutVariables.totalContentHeight)
-
+        
         // Update size of day view cells
         updateDayViewCellSizeAndSpacing()
         // Update frame of day collection view
         dayCollectionView.frame = CGRect(x: 0, y: 0, width: LayoutVariables.activeFrameWidth, height: LayoutVariables.totalContentHeight)
-
+        
         if oldWidth != LayoutVariables.totalContentWidth {
             let newXOffset = CGFloat(CGFloat(activeDay.dayInYear)*LayoutVariables.totalDayViewCellWidth).roundUpAdditionalHalf()
             dayCollectionView.contentOffset = CGPoint(x: newXOffset, y: 0)
@@ -508,18 +519,18 @@ UICollectionViewDelegate, UICollectionViewDataSource, DayViewCellDelegate, Frame
         else {
             dayCollectionView.contentOffset = CGPoint(x: oldXOffset, y: 0)
         }
-
+        
         // Update content size
         dayCollectionView.contentSize = CGSize(width: LayoutVariables.totalContentWidth, height: LayoutVariables.totalContentHeight)
-
+        
         if let weekView = self.superview?.superview as? WeekView {
             weekView.updateVisibleLabelsAndMainConstraints()
         }
     }
-
+    
     private func resetView(withYearOffsetChange change: Int) {
         activeYear += change
-
+        
         if change < 0 {
             dayCollectionView.contentOffset.x = (LayoutVariables.maxOffsetX).roundDownSubtractedHalf()
         }
@@ -527,27 +538,27 @@ UICollectionViewDelegate, UICollectionViewDataSource, DayViewCellDelegate, Frame
             dayCollectionView.contentOffset.x = (LayoutVariables.minOffsetX).roundUpAdditionalHalf()
         }
     }
-
+    
     private func scrollToNearestCell() {
         let xOffset = dayCollectionView.contentOffset.x
         let yOffset = dayCollectionView.contentOffset.y
-
+        
         let totalDayViewWidth = LayoutVariables.totalDayViewCellWidth
         let truncatedToPagingWidth = xOffset.truncatingRemainder(dividingBy: totalDayViewWidth)
-
+        
         if truncatedToPagingWidth >= 0.5 && yOffset >= LayoutVariables.minOffsetY && yOffset <= LayoutVariables.maxOffsetY {
             let targetXOffset = (round(xOffset / totalDayViewWidth)*totalDayViewWidth).roundUpAdditionalHalf()
             dayCollectionView.setContentOffset(CGPoint(x: targetXOffset, y: dayCollectionView.contentOffset.y), animated: true)
         }
     }
-
+    
     private func updateDayViewCellSizeAndSpacing() {
         if let flowLayout = dayCollectionView.collectionViewLayout as? DayCollectionViewFlowLayout {
             flowLayout.itemSize = CGSize(width: LayoutVariables.dayViewCellWidth, height: LayoutVariables.dayViewCellHeight)
             flowLayout.minimumLineSpacing = LayoutVariables.dayViewHorizontalSpacing
         }
     }
-
+    
     private func processEventsData(forDayDate dayDate: DayDate) {
         frameCalculators[dayDate]?.cancelCalculation()
         let calc = FrameCalculator(date: dayDate)
@@ -556,7 +567,7 @@ UICollectionViewDelegate, UICollectionViewDataSource, DayViewCellDelegate, Frame
         frameCalculators[dayDate] = calc
         calc.calculate(withData: allEventsData[dayDate])
     }
-
+    
     private func updatePeriod() {
         // Set current period to new period
         self.currentPeriod = Period(ofDate: self.activeDay)
@@ -575,12 +586,12 @@ fileprivate enum PeriodChange {
 // MARK: - CUSTOMIZATION EXTENSION -
 
 extension DayScrollView {
-
+    
     /**
      Sets the number of days visible in the week view when in portrait mode.
      */
     func setVisiblePortraitDays(to days: CGFloat) -> Bool {
-
+        
         // Set portrait visisble days variable
         LayoutVariables.portraitVisibleDays = days
         if LayoutVariables.orientation.isPortrait {
@@ -589,7 +600,7 @@ extension DayScrollView {
         }
         return false
     }
-
+    
     /**
      Sets the number of days visible in the week view when in landscape mode.
      */
@@ -601,7 +612,7 @@ extension DayScrollView {
         }
         return false
     }
-
+    
     /**
      Sets the default font for event labels.
      */
@@ -609,7 +620,7 @@ extension DayScrollView {
         FontVariables.eventLabelFont = font
         updateLayout()
     }
-
+    
     /**
      Sets the thin font for event labels.
      */
@@ -617,7 +628,7 @@ extension DayScrollView {
         FontVariables.eventLabelInfoFont = font
         updateLayout()
     }
-
+    
     /**
      Sets the text color for event labels.
      */
@@ -625,7 +636,7 @@ extension DayScrollView {
         FontVariables.eventLabelTextColor = color
         updateLayout()
     }
-
+    
     /**
      Sets the minimum scale for day labels.
      */
@@ -633,7 +644,7 @@ extension DayScrollView {
         FontVariables.eventLabelMinimumFontSize = size
         updateLayout()
     }
-
+    
     /**
      Sets whether event label text should resize or not.
      */
@@ -641,7 +652,7 @@ extension DayScrollView {
         FontVariables.eventLabelFontResizingEnabled = bool
         updateLayout()
     }
-
+    
     /**
      Sets the text of the preview event.
      */
@@ -649,7 +660,7 @@ extension DayScrollView {
         LayoutVariables.previewEventText = text
         updateLayout()
     }
-
+    
     /**
      Sets the color of the preview event.
      */
@@ -657,7 +668,7 @@ extension DayScrollView {
         LayoutVariables.previewEventColor = color
         updateLayout()
     }
-
+    
     /**
      Sets the text of the preview event.
      */
@@ -665,7 +676,7 @@ extension DayScrollView {
         LayoutVariables.previewEventHeightInHours = height
         updateLayout()
     }
-
+    
     /**
      Sets the precision of the preview event.
      */
@@ -673,7 +684,7 @@ extension DayScrollView {
         LayoutVariables.previewEventPrecisionInMinutes = minutes
         updateLayout()
     }
-
+    
     /**
      Sets the color of default day view color.
      */
@@ -681,7 +692,7 @@ extension DayScrollView {
         LayoutVariables.defaultDayViewColor = color
         updateLayout()
     }
-
+    
     /**
      Sets the color of weekend day view color.
      */
@@ -689,7 +700,7 @@ extension DayScrollView {
         LayoutVariables.weekendDayViewColor = color
         updateLayout()
     }
-
+    
     /**
      Sets the color of default day view color.
      */
@@ -697,7 +708,7 @@ extension DayScrollView {
         LayoutVariables.passedDayViewColor = color
         updateLayout()
     }
-
+    
     /**
      Sets the color of weekend day view color.
      */
@@ -705,7 +716,7 @@ extension DayScrollView {
         LayoutVariables.passedWeekendDayViewColor = color
         updateLayout()
     }
-
+    
     /**
      Sets the color of day view hour indicators.
      */
@@ -713,7 +724,7 @@ extension DayScrollView {
         LayoutVariables.hourIndicatorColor = color
         updateLayout()
     }
-
+    
     /**
      Sets the thickness of day view hour indicators.
      */
@@ -721,7 +732,7 @@ extension DayScrollView {
         LayoutVariables.hourIndicatorThickness = thickness
         updateLayout()
     }
-
+    
     /**
      Sets the color of the main day view separators.
      */
@@ -729,7 +740,7 @@ extension DayScrollView {
         LayoutVariables.mainSeparatorColor = color
         updateLayout()
     }
-
+    
     /**
      Sets the thickness of the main day view separators.
      */
@@ -737,7 +748,7 @@ extension DayScrollView {
         LayoutVariables.mainSeparatorThickness = thickness
         updateLayout()
     }
-
+    
     /**
      Sets the color of the dashed day view separators.
      */
@@ -745,7 +756,7 @@ extension DayScrollView {
         LayoutVariables.dashedSeparatorColor = color
         updateLayout()
     }
-
+    
     /**
      Sets the thickness of the dashed day view separators.
      */
@@ -753,7 +764,7 @@ extension DayScrollView {
         LayoutVariables.dashedSeparatorThickness = thickness
         updateLayout()
     }
-
+    
     /**
      Sets the thickness of the dashed day view separators.
      */
@@ -761,7 +772,7 @@ extension DayScrollView {
         LayoutVariables.dashedSeparatorPattern = pattern
         updateLayout()
     }
-
+    
     /**
      Sets the height of the day view cells for zoom scale 1.
      */
@@ -769,7 +780,7 @@ extension DayScrollView {
         LayoutVariables.initialDayViewCellHeight = height
         updateLayout()
     }
-
+    
     /**
      Sets the spacing in between day view cells for portrait mode.
      */
@@ -781,7 +792,7 @@ extension DayScrollView {
         }
         return false
     }
-
+    
     /**
      Sets the spacing in between day view cells for landscape mode.
      */
@@ -793,7 +804,7 @@ extension DayScrollView {
         }
         return false
     }
-
+    
     /**
      Sets the spacing in between day view cells for portrait mode.
      */
@@ -805,7 +816,7 @@ extension DayScrollView {
         }
         return false
     }
-
+    
     /**
      Sets the spacing in between day view cells for landscape mode.
      */
@@ -817,14 +828,14 @@ extension DayScrollView {
         }
         return false
     }
-
+    
     /**
      Sets the sensitivity of horizontal scrolling.
      */
     func setVelocityOffsetMultiplier(to multiplier: CGFloat) {
         LayoutVariables.velocityOffsetMultiplier = multiplier
     }
-
+    
     /**
      Sets the sensitivity of horizontal scrolling.
      */
@@ -832,7 +843,7 @@ extension DayScrollView {
         LayoutVariables.allDayEventHeight = height
         updateLayout()
     }
-
+    
     /**
      Sets the sensitivity of horizontal scrolling.
      */
@@ -840,40 +851,40 @@ extension DayScrollView {
         LayoutVariables.allDayEventVerticalSpacing = height
         updateLayout()
     }
-
+    
 }
 
 // MARK: - SCROLLVIEW LAYOUT VARIABLES -
 
 struct LayoutVariables {
-
+    
     // MARK: - SCROLLVIEW LAYOUT & SPACING VARIABLES -
-
+    
     fileprivate(set) static var orientation: UIInterfaceOrientation = .portrait {
         didSet {
             updateOrientationValues()
         }
     }
-
+    
     fileprivate(set) static var activeFrameWidth = CGFloat(250) {
         didSet {
             updateDayViewCellWidth()
         }
     }
-
+    
     fileprivate(set) static var activeFrameHeight = CGFloat(500) {
         didSet {
             updateMaxOffsetY()
         }
     }
-
+    
     // Zoom scale of current layout
     fileprivate(set) static var zoomScale = CGFloat(1) {
         didSet {
             updateDayViewCellHeight()
         }
     }
-
+    
     // Number of day columns visible depending on device orientation
     private(set) static var visibleDays: CGFloat = LayoutDefaults.visibleDaysPortrait {
         didSet {
@@ -892,7 +903,7 @@ struct LayoutVariables {
             updateTotalContentHeight()
         }
     }
-
+    
     // Height of the initial day columns
     fileprivate(set) static var initialDayViewCellHeight = LayoutDefaults.dayViewCellHeight {
         didSet {
@@ -905,14 +916,14 @@ struct LayoutVariables {
             updateTotalContentHeight()
         }
     }
-
+    
     // Width of an entire day column
     private(set) static var dayViewCellWidth = (activeFrameWidth - dayViewHorizontalSpacing*(visibleDays-1)) / visibleDays {
         didSet {
             updateTotalDayViewCellWidth()
         }
     }
-
+    
     // Total width of an entire day column including spacing
     private(set) static var totalDayViewCellWidth = dayViewCellWidth + dayViewHorizontalSpacing {
         didSet {
@@ -920,7 +931,7 @@ struct LayoutVariables {
             updateTotalContentWidth()
         }
     }
-
+    
     // Visible day cells in protrait mode
     fileprivate(set) static var portraitVisibleDays = LayoutDefaults.visibleDaysPortrait {
         didSet {
@@ -933,7 +944,7 @@ struct LayoutVariables {
             updateMaximumVisibleDays()
         }
     }
-
+    
     // Number of days in current year being displayed
     fileprivate(set) static var daysInActiveYear = DateSupport.getDaysInYear(DayDate.today.year) {
         didSet {
@@ -941,7 +952,7 @@ struct LayoutVariables {
             updateMaxOffsetX()
         }
     }
-
+    
     // Collection view cell count buffer, number of cells to de added to the "right" side of the colelction view.
     // This is equal to maximum number of days visisble plus one. This allows for smooth scrolling when crossing the year mark.
     private(set) static var collectionViewCellCountBuffer = Int(max(portraitVisibleDays, landscapeVisibleDays))+1 {
@@ -949,14 +960,14 @@ struct LayoutVariables {
             updateCollectionViewCellCount()
         }
     }
-
+    
     // Number of cells in the collection view
     private(set) static var collectionViewCellCount = daysInActiveYear + collectionViewCellCountBuffer {
         didSet {
             updateTotalContentWidth()
         }
     }
-
+    
     // Width of spacing between day columns in portrait mode
     fileprivate(set) static var portraitDayViewHorizontalSpacing = LayoutDefaults.portraitDayViewHorizontalSpacing {
         didSet {
@@ -969,7 +980,7 @@ struct LayoutVariables {
             updateOrientationValues()
         }
     }
-
+    
     // Width of spacing between day columns in portrait mode
     fileprivate(set) static var portraitDayViewVerticalSpacing = LayoutDefaults.portraitDayViewVerticalSpacing {
         didSet {
@@ -982,17 +993,17 @@ struct LayoutVariables {
             updateOrientationValues()
         }
     }
-
+    
     // Height of all scrollable content
     private(set) static var totalContentHeight = dayViewCellHeight {
         didSet {
             updateMaxOffsetY()
         }
     }
-
+    
     // Height of all scrollable content
     private(set) static var totalContentWidth = CGFloat(collectionViewCellCount)*totalDayViewCellWidth+dayViewHorizontalSpacing
-
+    
     // Min x-axis values that repeating starts at
     private(set) static var minOffsetX = CGFloat(0)
     // Max x-axis values that repeating starts at
@@ -1013,9 +1024,9 @@ struct LayoutVariables {
     fileprivate(set) static var allDayEventHeight = LayoutDefaults.allDayEventHeight
     // Vertical spacing of an all day event
     fileprivate(set) static var allDayEventVerticalSpacing = LayoutDefaults.allDayVerticalSpacing
-
+    
     // MARK: - FONT & COLOUR VARIABLES -
-
+    
     // Color for day view default color
     fileprivate(set) static var defaultDayViewColor = LayoutDefaults.defaultDayViewColor
     // Color for day view weekend color
@@ -1024,24 +1035,24 @@ struct LayoutVariables {
     fileprivate(set) static var passedDayViewColor = LayoutDefaults.passedDayViewColor
     // Color for day view passed weekend color
     fileprivate(set) static var passedWeekendDayViewColor = LayoutDefaults.passedWeekendDayViewColor
-
+    
     // Color for day view hour indicator
     fileprivate(set) static var hourIndicatorColor = LayoutDefaults.hourIndicatorColor
     // Thickness for day view hour indicator
     fileprivate(set) static var hourIndicatorThickness = LayoutDefaults.hourIndicatorThickness
-
+    
     // Color for day view main separators
     fileprivate(set) static var mainSeparatorColor = LayoutDefaults.backgroundColor
     // Thickness for day view main Separators
     fileprivate(set) static var mainSeparatorThickness = LayoutDefaults.mainSeparatorThickness
-
+    
     // Color for day view dahshed Separators
     fileprivate(set) static var dashedSeparatorColor = LayoutDefaults.backgroundColor
     // Thickness for day view dashed Separators
     fileprivate(set) static var dashedSeparatorThickness = LayoutDefaults.dashedSeparatorThickness
     // Pattern for day view dashed Separators
     fileprivate(set) static var dashedSeparatorPattern = LayoutDefaults.dashedSeparatorPattern
-
+    
     // Text contained in preview event
     fileprivate(set) static var previewEventText = LayoutDefaults.previewEventText
     // Color of the preview event
@@ -1050,9 +1061,9 @@ struct LayoutVariables {
     fileprivate(set) static var previewEventHeightInHours = LayoutDefaults.previewEventHeightInHours
     // Number of minutes the preview event will snap to.
     fileprivate(set) static var previewEventPrecisionInMinutes = LayoutDefaults.previewEventPrecisionInMinutes
-
+    
     // MARK: - UPDATE FUNCTIONS -
-
+    
     private static func updateOrientationValues() {
         if orientation.isPortrait {
             visibleDays = portraitVisibleDays
@@ -1065,46 +1076,46 @@ struct LayoutVariables {
             dayViewVerticalSpacing = landscapeDayViewVerticalSpacing
         }
     }
-
+    
     private static func updateDayViewCellWidth() {
         dayViewCellWidth = (activeFrameWidth - dayViewHorizontalSpacing*(visibleDays-1)) / visibleDays
     }
-
+    
     private static func updateDayViewCellHeight() {
         dayViewCellHeight = initialDayViewCellHeight*zoomScale
     }
-
+    
     private static func updateTotalDayViewCellWidth() {
         totalDayViewCellWidth = dayViewCellWidth + dayViewHorizontalSpacing
     }
-
+    
     private static func updateTotalContentHeight() {
         totalContentHeight = dayViewCellHeight
     }
-
+    
     private static func updateTotalContentWidth() {
         totalContentWidth = CGFloat(collectionViewCellCount)*totalDayViewCellWidth-dayViewHorizontalSpacing
     }
-
+    
     private static func updateMaximumVisibleDays() {
         collectionViewCellCountBuffer = Int(max(portraitVisibleDays, landscapeVisibleDays))
     }
-
+    
     private static func updateCollectionViewCellCount() {
         collectionViewCellCount = collectionViewCellCountBuffer + daysInActiveYear
     }
-
+    
     private static func updateMaxOffsetX() {
         maxOffsetX = CGFloat(daysInActiveYear)*totalDayViewCellWidth
     }
-
+    
     private static func updateMaxOffsetY() {
         maxOffsetY = totalContentHeight - activeFrameHeight
     }
 }
 
 extension FontVariables {
-
+    
     // Font for all event labels
     fileprivate(set) static var eventLabelFont = LayoutDefaults.eventLabelFont
     // Font for all event labels
@@ -1115,5 +1126,5 @@ extension FontVariables {
     fileprivate(set) static var eventLabelMinimumFontSize = LayoutDefaults.eventLabelMinimumFontSize
     // Stores if event label resizing is enabled
     fileprivate(set) static var eventLabelFontResizingEnabled = false
-
+    
 }

@@ -11,16 +11,16 @@ import UIKit
  */
 
 open class WeekView: UIView {
-
+    
     // MARK: - OUTLETS -
-
+    
     @IBOutlet var topBarView: UIView!
     @IBOutlet var topLeftBufferView: UIView!
     @IBOutlet var sideBarView: UIView!
     @IBOutlet var dayScrollView: DayScrollView!
-
+    
     // MARK: - CONSTRAINTS -
-
+    
     @IBOutlet var sideBarHeightConstraint: NSLayoutConstraint!
     @IBOutlet var sideBarWidthConstraint: NSLayoutConstraint!
     @IBOutlet var sideBarYPositionConstraint: NSLayoutConstraint!
@@ -30,14 +30,14 @@ open class WeekView: UIView {
     @IBOutlet var topBarXPositionConstraint: NSLayoutConstraint!
     @IBOutlet var topLeftBufferWidthConstraint: NSLayoutConstraint!
     @IBOutlet var topLeftBufferHeightConstraint: NSLayoutConstraint!
-
+    
     // MARK: - PUBLIC PROPERTIES -
-
+    
     // WeekView Delegate
     public weak var delegate: WeekViewDelegate?
-
+    
     // MARK: - PRIVATE VARIABLES -
-
+    
     // The actual view being displayed, all other views are subview of this mainview
     private(set) var mainView: UIView!
     // Array of visible daylabels
@@ -52,7 +52,7 @@ open class WeekView: UIView {
     private var sideBarTopBuffer: CGFloat = 40
     // The scale of the latest pinch event
     private var lastTouchScale = CGFloat(0)
-
+    
     /**
      Extra height added on to default top bar height.
      */
@@ -61,9 +61,9 @@ open class WeekView: UIView {
             self.updateTopBarHeight()
         }
     }
-
+    
     // MARK: - INITIALIZERS/OVERRIDES -
-
+    
     /**
      Required init.
      */
@@ -71,7 +71,7 @@ open class WeekView: UIView {
         super.init(coder: aDecoder)
         initWeekView()
     }
-
+    
     /**
      Override frame init.
      */
@@ -79,7 +79,7 @@ open class WeekView: UIView {
         super.init(frame: frame)
         initWeekView()
     }
-
+    
     /**
      Updates displayed time and requests event when moving to window.
      */
@@ -91,9 +91,9 @@ open class WeekView: UIView {
         // Request new events
         dayScrollView.requestEvents()
     }
-
+    
     /**
-      Custom initializer method.
+     Custom initializer method.
      */
     private func initWeekView() {
         // Get the view layout from the nib
@@ -106,7 +106,7 @@ open class WeekView: UIView {
         self.clipsToBounds = true
         self.topBarView.clipsToBounds = true
     }
-
+    
     /**
      Fetches the weekView nib and sets it as main view.
      */
@@ -114,7 +114,7 @@ open class WeekView: UIView {
         let bundle = Bundle(for: WeekView.self)
         let nib = UINib(nibName: NibNames.weekView, bundle: bundle)
         self.mainView = nib.instantiate(withOwner: self, options: nil).first as? UIView
-
+        
         if mainView != nil {
             self.mainView!.frame = self.bounds
             self.mainView!.autoresizingMask = [.flexibleWidth, .flexibleHeight]
@@ -123,9 +123,9 @@ open class WeekView: UIView {
         self.backgroundColor = UIColor.clear
         updateVisibleLabelsAndMainConstraints()
     }
-
+    
     // MARK: - PUBLIC FUNCTIONS -
-
+    
     /**
      Updates the time displayed on the calendar
      */
@@ -138,7 +138,7 @@ open class WeekView: UIView {
             }
         }
     }
-
+    
     /**
      Redraws all events in the dayview cells
      */
@@ -151,21 +151,21 @@ open class WeekView: UIView {
             }
         }
     }
-
+    
     /**
      Shows the day view cell corresponding to asked day.
      */
     public func showDay(withDate date: Date) {
         dayScrollView.goToAndShow(dayDate: DayDate(date: date))
     }
-
+    
     /**
      Shows the day view cell corresponding to today.
      */
     public func showToday() {
         dayScrollView.goToAndShow(dayDate: DayDate(date: Date()), showNow: true)
     }
-
+    
     /**
      Overwrittes all events with new data.
      */
@@ -175,7 +175,11 @@ open class WeekView: UIView {
         }
         dayScrollView.overwriteAllEvents(withData: eventsData)
     }
-
+    
+    open func getVisibleFirstAndLastDate() -> (Date, Date)? {
+        return dayScrollView.getVisiblePeriod()
+    }
+    
     /**
      Remove all event previes.
      */
@@ -184,14 +188,14 @@ open class WeekView: UIView {
     }
     
     // MARK: - DELEGATE FUNCTIONS -
-
+    
     /**
      Method delegates event view taps, and sends a callback with the event id up to the WeekViewDelegate.
      */
     func eventViewWasTapped(_ eventData: EventData) {
         self.delegate?.didTapEvent(in: self, withId: eventData.id)
     }
-
+    
     /**
      Method delegates day view cell long presses, and sends a callback the pressed time up to the WeekViewDelegate.
      */
@@ -216,48 +220,48 @@ open class WeekView: UIView {
         let date = dayViewCell.date.getDateWithTime(hours: hours, minutes: minutes, seconds: 0)
         return delegate.weekViewCellShouldCreatePreviewOnTap(date : date)
     }
-
-
+    
+    
     /**
      Method delegates active day change and sends a callback with the new day up to the WeekViewDelegate.
      */
     func activeDayWasChanged(to day: DayDate) {
         self.delegate?.activeDayChanged?(in: self, to: day.dateObj)
     }
-
+    
     /**
      Method delegates event requests and sends a callback with start and end Date up to the WeekViewDelegate.
      */
     func requestEvents(between startDate: DayDate, and endDate: DayDate) {
         self.delegate?.eventLoadRequest(in: self, between: startDate.dateObj, and: endDate.dateObj)
     }
-
+    
     // MARK: - INTERNAL FUNCTIONS -
-
+    
     /**
      Triggered by pinch gesture to zoom the dayScrollView,
      */
     func zoomView(_ sender: UIPinchGestureRecognizer) {
-
+        
         let currentScale = sender.scale
         var touchCenter: CGPoint! = nil
-
+        
         if sender.numberOfTouches >= 2 {
             let touch1 = sender.location(ofTouch: 0, in: self)
             let touch2 = sender.location(ofTouch: 1, in: self)
             touchCenter = CGPoint(x: (touch1.x+touch2.x)/2, y: (touch1.y+touch2.y)/2)
         }
-
+        
         dayScrollView.zoomContent(withNewScale: currentScale, newTouchCenter: touchCenter, andState: sender.state)
         updateTopAndSideBarConstraints()
     }
-
+    
     /**
      Adds a dayLabel at indexPath with given date.
      */
     func addDayLabel(forIndexPath indexPath: IndexPath, withDate dayDate: DayDate) {
         var item : TopBarViewContainer!
-
+        
         if !discardedDayViews.isEmpty {
             item = discardedDayViews.remove(at: 0)
             item.frame = Util.generateDayLabelFrame(forIndex: indexPath)
@@ -270,13 +274,13 @@ open class WeekView: UIView {
         visibleDayLabels[dayDate] = item
         self.topBarView.addSubview(item)
     }
-
+    
     /**
      Discards the day label at given date. This does not completely remove the day label. It is stored as a
      discarded day label and can be recycled later.
      */
     func discardDayView(withDate date: DayDate) {
-
+        
         if let item = visibleDayLabels[date] {
             item.removeFromSuperview()
             visibleDayLabels.removeValue(forKey: date)
@@ -284,27 +288,27 @@ open class WeekView: UIView {
         }
         trashExtraDiscardedDayLabels()
     }
-
+    
     /**
      Adds the allDayEvents provided by the events parameter at indexPath with given dayDate. This also triggers a topBar resize animation.
      */
     func addAllDayEvents(_ events: [EventData], forIndexPath indexPath: IndexPath, withDate dayDate: DayDate) {
         let extraHeight = LayoutVariables.allDayEventVerticalSpacing*2+LayoutVariables.allDayEventHeight
-
+        
         if self.topBarHeight < extraHeight {
             self.extraTopBarHeight = extraHeight
             UIView.animate(withDuration: 0.25, animations: {
                 self.layoutIfNeeded()
             })
         }
-
+        
         if visibleAllDayEvents[dayDate] != nil {
             for (_, layer) in visibleAllDayEvents[dayDate]! {
                 layer.removeFromSuperlayer()
             }
             visibleAllDayEvents[dayDate] = nil
         }
-
+        
         let max = events.count
         var i = 0
         var layers: [EventData: CAShapeLayer] = [:]
@@ -317,7 +321,7 @@ open class WeekView: UIView {
         }
         self.visibleAllDayEvents[dayDate] = layers
     }
-
+    
     /**
      Removed the allDayEvents from given dayDate. Also triggers topBar resize animation.
      */
@@ -328,7 +332,7 @@ open class WeekView: UIView {
             }
             visibleAllDayEvents[dayDate] = nil
         }
-
+        
         if visibleAllDayEvents.isEmpty && self.topBarHeight > LayoutVariables.defaultTopBarHeight {
             self.extraTopBarHeight = 0
             UIView.animate(withDuration: 0.25, animations: {
@@ -336,14 +340,14 @@ open class WeekView: UIView {
             })
         }
     }
-
+    
     /**
      Function returns true if there are allDayEvents at given dayDate.
      */
     func hasAllDayEvents(forDate dayDate: DayDate) -> Bool {
         return (visibleAllDayEvents[dayDate] != nil)
     }
-
+    
     /**
      Method is triggered when the top bar is tapped.
      */
@@ -357,7 +361,7 @@ open class WeekView: UIView {
             }
         }
     }
-
+    
     /**
      Method will reset font values, update the top and side baer constraints, and update all visible day labels.
      */
@@ -366,7 +370,7 @@ open class WeekView: UIView {
         updateTopAndSideBarConstraints()
         updateVisibleDayLabels()
     }
-
+    
     /**
      Method will update top and side bar positions, so that they scroll along with the current dayScrollView.
      */
@@ -375,31 +379,31 @@ open class WeekView: UIView {
         sideBarYPositionConstraint.constant = -dayScrollView.contentOffset.y - dayViewCellHourHeight/2
         topBarXPositionConstraint.constant = -dayScrollView.dayCollectionView.contentOffset.x + topBarLeftBuffer
     }
-
+    
     // MARK: - PRIVATE/HELPER FUNCTIONS -
-
+    
     /**
      Method updates hour side bar height and position constraints, topBar height and width, and top left buffer size.
      */
     private func updateTopAndSideBarConstraints() {
-
+        
         // Height of total side bar
         let dayViewCellHeight = LayoutVariables.dayViewCellHeight
         let dayViewCellHourHeight = dayViewCellHeight/DateSupport.hoursInDay
         let sideBarHeight = dayViewCellHeight + dayViewCellHourHeight
-
+        
         // Set position and size constraints for side bar and hour view
         self.hourSideBarBottomConstraint.constant = dayViewCellHourHeight
         self.sideBarHeightConstraint.constant = sideBarHeight
         self.sideBarTopBuffer = LayoutVariables.dayViewVerticalSpacing - dayViewCellHourHeight/2
-
+        
         // Set correct size and constraints of top bar view
         self.topBarWidthConstraint.constant = dayScrollView.dayCollectionView.contentSize.width
         self.topBarLeftBuffer = sideBarView.frame.width
         updateTopAndSideBarPositions()
         updateTopBarHeight()
     }
-
+    
     /**
      Method updates frames, text and fonts of all visible day labels.
      */
@@ -408,7 +412,7 @@ open class WeekView: UIView {
             let indexPath = dayScrollView.dayCollectionView.indexPath(for: cell)!
             if let dayViewCell = cell as? DayViewCell {
                 let dayDate = dayViewCell.date
-
+                
                 if let item = visibleDayLabels[dayDate] {
                     item.frame = Util.generateDayLabelFrame(forIndex: indexPath)
                     updateDayItem(item, withDate: dayDate)
@@ -416,7 +420,7 @@ open class WeekView: UIView {
             }
         }
     }
-
+    
     /**
      Method updates a day labels font, text color and also performs a text assignment resize check.
      */
@@ -427,13 +431,13 @@ open class WeekView: UIView {
             updateVisibleDayLabels()
         }
     }
-
+    
     /**
      Method trashes any extra day labels in the discarded day label array.
      */
     private func trashExtraDiscardedDayLabels() {
         let maxAllowed = Int(LayoutVariables.visibleDays)
-
+        
         if discardedDayViews.count > maxAllowed {
             let overflow = discardedDayViews.count - maxAllowed
             for _ in 0...overflow {
@@ -441,7 +445,7 @@ open class WeekView: UIView {
             }
         }
     }
-
+    
     /**
      Method resets all font values such as font resizing and day label text mode.
      */
@@ -449,7 +453,7 @@ open class WeekView: UIView {
         FontVariables.dayLabelCurrentFontSize = FontVariables.dayLabelDefaultFont.pointSize
         Util.resetDayLabelTextMode()
     }
-
+    
     private func updateHourSideBarLabels() {
         for subView in self.sideBarView.subviews {
             if let hourSideBarView = subView as? HourSideBarView {
@@ -457,7 +461,7 @@ open class WeekView: UIView {
             }
         }
     }
-
+    
 }
 
 extension WeekView : TopBarViewContainerProtocol {
@@ -471,14 +475,14 @@ extension WeekView : TopBarViewContainerProtocol {
  only be updated when updateTopBarHeight function is called.
  */
 extension WeekView {
-
+    
     /**
      Method updates the top bar height.
      */
     func updateTopBarHeight() {
         self.topBarHeight = self.extraTopBarHeight + self.defaultTopBarHeight
     }
-
+    
     /**
      Height of top bar.
      */
@@ -491,7 +495,7 @@ extension WeekView {
             self.topLeftBufferHeightConstraint.constant = height
         }
     }
-
+    
 }
 
 // MARK: - WEEKVIEW DELEGATE -
@@ -504,23 +508,23 @@ extension WeekView {
     func didLongPressDayView(in weekView: WeekView, atDate date: Date)
     
     func didTapDayView(in weekView: WeekView, atDate date: Date)
-
+    
     func didTapEvent(in weekView: WeekView, withId eventId: String)
-
+    
     func weekViewCellShouldCreatePreviewOnLongPress(date : Date) -> Bool
     
     func weekViewCellShouldCreatePreviewOnTap(date : Date) -> Bool
     
     @objc
     optional func activeDayChanged(in weekView: WeekView, to date: Date)
-
+    
     func eventLoadRequest(in weekView: WeekView, between startDate: Date, and endDate: Date)
 }
 
 // MARK: - WEEKVIEW LAYOUT VARIABLES -
 
 public struct FontVariables {
-
+    
     // Minimum font for all day labels
     fileprivate static var dayLabelCurrentFontSize = LayoutDefaults.dayLabelFont.pointSize {
         didSet {
@@ -529,10 +533,10 @@ public struct FontVariables {
     }
     // Current font for all day labels
     private(set) static var dayLabelCurrentFont = LayoutDefaults.dayLabelFont
-
+    
     // Method updates the current font of day labels.
     static func updateDayLabelCurrentFont () {
         dayLabelCurrentFont = dayLabelDefaultFont.withSize(dayLabelCurrentFontSize)
     }
-
+    
 }
