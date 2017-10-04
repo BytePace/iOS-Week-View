@@ -12,7 +12,32 @@ import UIKit
 public var autoFillEvents = true
 
 class CalendarViewController: UIViewController, WeekViewDelegate {
-
+    func didTapTopCrossButton(in weekView: WeekView, atDate date: Date) {
+        print("cross at date \(date)")
+    }
+    func weekViewCellShouldCreatePreviewOnTap(date: Date) -> Bool {
+        return false
+    }
+    
+    func weekViewCellShouldCreatePreviewOnLongPress(date: Date) -> Bool {
+        return true
+    }
+    
+    func didTapDayView(in weekView: WeekView, atDate date: Date) {
+        
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        weekView.hourLabelDateFormat = "hh a"
+        weekView.sideBarWidth = 40
+        if weekView.visibleDaysInPortraitMode == 3 {
+            weekView.visibleDaysInPortraitMode = 7
+        } else {
+            weekView.visibleDaysInPortraitMode = 3
+        }
+    }
+    
     var allEvents: [Int: EventData] = [:]
     var eventsSortedByDay: [Date: [EventData]] = [:]
     var id: Int = 0
@@ -33,6 +58,29 @@ class CalendarViewController: UIViewController, WeekViewDelegate {
     override func viewDidLoad() {
         super.viewDidLoad()
         weekView.delegate = self
+//        weekView.defaultTopBarHeight = 60
+//        weekView.dayViewHourIndicatorThickness = 1
+//        weekView.portraitDayViewVerticalSpacing = UIScreen.main.scale
+        weekView.dayLabelTextColor = UIColor.lightGray
+        weekView.dayViewMainSeparatorThickness = 1 / UIScreen.main.scale
+        weekView.sideBarWidth = 40
+        weekView.hourLabelDateFormat = "HH"
+        weekView.visibleDaysInPortraitMode = 3
+        weekView.dayViewDashedSeparatorThickness = 0
+        weekView.hourLabelTextColor = UIColor.lightGray
+        weekView.mainBackgroundColor = UIColor.white
+        weekView.defaultDayViewColor = UIColor.white
+        weekView.weekendDayViewColor = UIColor.white
+        weekView.passedDayViewColor = UIColor.white
+        weekView.topBarColor = UIColor.white
+        weekView.sideBarBackgroundColor = UIColor.clear
+        weekView.dayCollectionViewBackgroundColor = UIColor.lightGray
+        weekView.dayCollectionViewBorderColor = UIColor.lightGray
+        weekView.dayCollectionViewBorderWidth = 1
+        weekView.dayViewHourIndicatorThickness = 1
+        weekView.dayViewHourIndicatorColor = UIColor.blue
+        weekView.dayLabelDateFormats = [TextMode.small : "EEEEE d", TextMode.normal : "EEE d", TextMode.large : "EEE d"]
+
     }
 
     override func didReceiveMemoryWarning() {
@@ -89,6 +137,7 @@ class CalendarViewController: UIViewController, WeekViewDelegate {
                                      endDate: date.addingTimeInterval(60*60*4),
                                      location: "loc test",
                                      color: color)
+//            newEvent.setFont(font: UIFont.boldSystemFont(ofSize: 72))
             self.allEvents[self.id] = newEvent
             self.id += 1
             weekView.loadEvents(withData: Array(self.allEvents.values))
